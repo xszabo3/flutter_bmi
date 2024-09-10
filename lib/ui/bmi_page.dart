@@ -2,10 +2,17 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_bmi/utils/constants.dart' as constants;
 
-class BmiPage extends StatelessWidget {
+class BmiPage extends StatefulWidget {
   const BmiPage({
     super.key,
   });
+
+  @override
+  State<BmiPage> createState() => _BmiPageState();
+}
+
+class _BmiPageState extends State<BmiPage> {
+  var usedUnit = "Imperial";
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +24,13 @@ class BmiPage extends StatelessWidget {
           const SizedBox(height: 20,),
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: ElevatedButton(onPressed: () { print('Button pressed'); }, child: const Text('Use imperial')), //TODO Use something better
+            child: ElevatedButton(
+              onPressed: () { 
+                setState(() {
+                  usedUnit = usedUnit == "Imperial" ? "Metric" : "Imperial";
+                });
+              }, 
+              child: Text('Switch to $usedUnit')),
           ),
           Padding(
             padding: const EdgeInsets.all(8.0),
