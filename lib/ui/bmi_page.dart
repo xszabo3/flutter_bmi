@@ -103,7 +103,16 @@ class PageContents extends StatelessWidget {
         if(viewModel.bmi != null)...[
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: Text(key: const Key('result'),
+            child: Text(
+              key: const Key('result'),
+              style: viewModel.bmi == null ?
+                TextStyle(backgroundColor: Theme.of(context).colorScheme.primary) :
+                switch(double.parse(viewModel.bmi!)) {
+                  < 18.5 => const TextStyle(backgroundColor: Colors.yellow),
+                  >= 30.0 => const TextStyle(backgroundColor: Colors.red),
+                  >= 25.0 => const TextStyle(backgroundColor: Colors.orange),
+                  _ => const TextStyle(backgroundColor: Colors.transparent),
+                },
               'BMI = ${viewModel.bmi}'),
           )
         ],
