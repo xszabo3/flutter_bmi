@@ -5,6 +5,12 @@ import 'package:flutter_bmi/model/bmi_model.dart';
 
 import 'package:flutter_bmi/utils/constants.dart' as constants;
 
+extension Capitalize on String{
+  String capitalize() {
+    return '${this[0].toUpperCase()}''${substring(1)}';
+  }
+}
+
 class BmiPage extends StatefulWidget {
   const BmiPage({
     super.key,
@@ -26,7 +32,7 @@ class _BmiPageState extends State<BmiPage> {
         return Column(
           mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              if(viewModel.errorMessage != null) 
+              if(viewModel.errorMessage != null)...[
                 Text(
                   'Error: ${viewModel.errorMessage}',
                   style: Theme.of(context)
@@ -34,27 +40,38 @@ class _BmiPageState extends State<BmiPage> {
                       .labelSmall
                       ?.apply(color: Colors.red),
                 ),
-              
-              InputRow(label: "Weight:", textfieldWidth: constants.textfieldWidth, unit: viewModel.unit!, isHeight: false, textController: viewModel.weightTextController,),
-              InputRow(label: "Height:", textfieldWidth: constants.textfieldWidth, unit: viewModel.unit!, isHeight: true, textController: viewModel.heightTextController,),
+              ],
+              //Inputs
+              InputRow(label: "Weight:", textfieldWidth: constants.textfieldWidth, unit: viewModel.unit, isHeight: false, textController: viewModel.weightTextController,),
+              InputRow(label: "Height:", textfieldWidth: constants.textfieldWidth, unit: viewModel.unit, isHeight: true, textController: viewModel.heightTextController,),
               const SizedBox(height: 20,),
+              
+              //Buttons
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: ElevatedButton(
                   onPressed: () { 
                     viewModel.switchUnit();
                   }, 
-                  child: const Text('Switch units')),
+                  child: Text(viewModel.unit.name.capitalize())),
               ),
               Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: ElevatedButton(onPressed: () { viewModel.calculate(); }, child: const Text('Calculate')),
+                child: ElevatedButton(
+                  onPressed: viewModel.heightTextController.text.isEmpty &&
+                    viewModel.weightTextController.text.isEmpty ? //TODO notify listeners 
+                      null : 
+                      () { viewModel.calculate(); },
+                  child: const Text('Calculate')),
               ),
-              const Text('Result:'),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text('${viewModel.bmi} BMI'),
-              )
+
+              //Result
+              if(viewModel.bmi != null)...[
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text('BMI = ${viewModel.bmi}'),
+                )
+              ]
             ],
         );
       },
