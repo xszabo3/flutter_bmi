@@ -15,7 +15,7 @@ class MainApp extends StatelessWidget {
         appBar: AppBar(
           title: const Text('BMI calculator'),
         ),
-        body: Center(
+        body: const Center(
           child: BmiPage(),
         ),
       ),

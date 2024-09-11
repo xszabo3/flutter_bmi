@@ -41,43 +41,82 @@ class _BmiPageState extends State<BmiPage> {
                       ?.apply(color: Colors.red),
                 ),
               ],
-              //Inputs
-              InputRow(label: "Weight:", textfieldWidth: constants.textfieldWidth, unit: viewModel.unit, isHeight: false, textController: viewModel.weightTextController,),
-              InputRow(label: "Height:", textfieldWidth: constants.textfieldWidth, unit: viewModel.unit, isHeight: true, textController: viewModel.heightTextController,),
-              const SizedBox(height: 20,),
               
-              //Buttons
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: ElevatedButton(
-                  onPressed: () { 
-                    viewModel.switchUnit();
-                  }, 
-                  child: Text(viewModel.unit.name.capitalize())),
+              ValueListenableBuilder(
+                valueListenable: viewModel.heightTextController, 
+                builder: (context, TextEditingValue valueHeight, __) {
+                  return ValueListenableBuilder(
+                    valueListenable: viewModel.weightTextController, 
+                    builder: (context, TextEditingValue valueHeight, __) {
+                      return PageContents(viewModel: viewModel);
+                    }
+                  );
+                }
               ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: ElevatedButton(
-                  onPressed: viewModel.heightTextController.text.isEmpty &&
-                    viewModel.weightTextController.text.isEmpty ? //TODO notify listeners 
-                      null : 
-                      () { viewModel.calculate(); },
-                  child: const Text('Calculate')),
-              ),
-
-              //Result
-              if(viewModel.bmi != null)...[
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text('BMI = ${viewModel.bmi}'),
-                )
-              ]
             ],
         );
       },
     );
   }
-    
+}
+
+class PageContents extends StatelessWidget {
+  const PageContents({
+    super.key,
+    required this.viewModel,
+  });
+
+  final BmiViewModel viewModel;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        InputRow(label: "Weight:", textfieldWidth: constants.textfieldWidth, unit: viewModel.unit, isHeight: false, textController: viewModel.weightTextController,),
+        InputRow(label: "Height:", textfieldWidth: constants.textfieldWidth, unit: viewModel.unit, isHeight: true, textController: viewModel.heightTextController,),
+        const SizedBox(height: 20,),
+        
+        //Buttons
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: ElevatedButton(
+            onPressed: () { 
+              viewModel.switchUnit();
+            }, 
+            child: Text(viewModel.unit.name.capitalize())),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: CalculateButton(viewModel: viewModel),
+        ),
+        //Result
+        if(viewModel.bmi != null)...[
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text('BMI = ${viewModel.bmi}'),
+          )
+        ],
+      ],
+    );
+  }
+}
+
+class CalculateButton extends StatelessWidget {
+  const CalculateButton({
+    super.key,
+    required this.viewModel,
+  });
+
+  final BmiViewModel viewModel;
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      onPressed: viewModel.heightTextController.text.isNotEmpty && viewModel.weightTextController.text.isNotEmpty ?
+          () { viewModel.calculate(); } : 
+          null,
+      child: const Text('Calculate'));
+  }
 }
 
 class InputRow extends StatelessWidget {
