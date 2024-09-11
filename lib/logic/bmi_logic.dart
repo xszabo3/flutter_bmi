@@ -41,13 +41,13 @@ class BmiViewModel extends ChangeNotifier {
   }
 
   void calculate(){
-    var height;
-    var weight;
+    double height;
+    double weight;
     try{
       height = double.parse(heightTextController.text);
       weight = double.parse(weightTextController.text);
     }on FormatException {
-      errorMessage = 'The input is not a valid number use "." for decimal delimeter';
+      errorMessage = 'The input is not a valid number. Use "." for decimal delimeter';
       bmi = null;
       notifyListeners();
       return;
