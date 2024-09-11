@@ -3,11 +3,12 @@ import 'package:flutter_bmi/model/bmi_model.dart';
 
 class BmiViewModel extends ChangeNotifier {
   final BmiModel model;
-  Unit? unit;
+  Unit? unit = Unit.values.first;
   String? errorMessage;
-  BmiViewModel(this.model){
-    currentUnit();
-  }
+
+  BmiViewModel({
+    required this.model
+  });
 
   Future<void> currentUnit() async {
     try {
