@@ -87,7 +87,12 @@ class PageContents extends StatelessWidget {
         ),
         Padding(
           padding: const EdgeInsets.all(8.0),
-          child: CalculateButton(viewModel: viewModel),
+          child: ElevatedButton(
+            onPressed: viewModel.heightTextController.text.isNotEmpty && viewModel.weightTextController.text.isNotEmpty ?
+              () { viewModel.calculate(); } : 
+              null,
+            child: const Text('Calculate')
+          ),
         ),
         //Result
         if(viewModel.bmi != null)...[
@@ -98,24 +103,6 @@ class PageContents extends StatelessWidget {
         ],
       ],
     );
-  }
-}
-
-class CalculateButton extends StatelessWidget {
-  const CalculateButton({
-    super.key,
-    required this.viewModel,
-  });
-
-  final BmiViewModel viewModel;
-
-  @override
-  Widget build(BuildContext context) {
-    return ElevatedButton(
-      onPressed: viewModel.heightTextController.text.isNotEmpty && viewModel.weightTextController.text.isNotEmpty ?
-          () { viewModel.calculate(); } : 
-          null,
-      child: const Text('Calculate'));
   }
 }
 
