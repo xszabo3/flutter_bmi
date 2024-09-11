@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bmi/logic/bmi_logic.dart';
 import 'package:flutter_bmi/model/bmi_model.dart';
 
@@ -34,8 +35,8 @@ class _BmiPageState extends State<BmiPage> {
                       ?.apply(color: Colors.red),
                 ),
               
-              InputRow(label: "Weight:", textfieldWidth: constants.textfieldWidth, unit: viewModel.unit!, isHeight: false),
-              InputRow(label: "Height:", textfieldWidth: constants.textfieldWidth, unit: viewModel.unit!, isHeight: true,),
+              InputRow(label: "Weight:", textfieldWidth: constants.textfieldWidth, unit: viewModel.unit!, isHeight: false, textController: viewModel.weightTextController,),
+              InputRow(label: "Height:", textfieldWidth: constants.textfieldWidth, unit: viewModel.unit!, isHeight: true, textController: viewModel.heightTextController,),
               const SizedBox(height: 20,),
               Padding(
                 padding: const EdgeInsets.all(8.0),
@@ -47,12 +48,12 @@ class _BmiPageState extends State<BmiPage> {
               ),
               Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: ElevatedButton(onPressed: () { print('Button pressed'); }, child: const Text('Calculate')),
+                child: ElevatedButton(onPressed: () { viewModel.calculate(); }, child: const Text('Calculate')),
               ),
               const Text('Result:'),
-              const Padding(
-                padding: EdgeInsets.all(8.0),
-                child: Text('0 BMI'),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text('${viewModel.bmi} BMI'),
               )
             ],
         );
@@ -69,12 +70,14 @@ class InputRow extends StatelessWidget {
     required this.textfieldWidth,
     required this.unit,
     required this.isHeight,
+    required this.textController
   });
 
   final String label;
   final double textfieldWidth;
   final Unit unit;
   final bool isHeight;
+  final TextEditingController textController;
 
   @override
   Widget build(BuildContext context) {
@@ -86,7 +89,11 @@ class InputRow extends StatelessWidget {
           padding: const EdgeInsets.all(8.0),
           child: SizedBox(
             width: textfieldWidth,
-            child: const TextField(),
+            child: TextField(
+              controller: textController,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              inputFormatters: [FilteringTextInputFormatter.allow(RegExp('[0-9.]'))],
+            ),
           ),
         ),
         Text(isHeight ? unit.heightUnit : unit.weightUnit),

@@ -1,4 +1,4 @@
-const double textfieldWidth = 35;
+const double textfieldWidth = 60;
 
 class Units{
   static const imperialHeight = 'feet';
