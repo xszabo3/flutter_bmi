@@ -145,8 +145,16 @@ void main() {
         await tester.tap(buttonFinder);
         await tester.pumpAndSettle();
 
-        
+        //Error visible
         expect(find.byKey(const Key('error')), findsOneWidget);
+
+        await tester.enterText(weightTextFinder, '132.27');
+        await tester.pumpAndSettle();
+        await tester.tap(buttonFinder);
+        await tester.pumpAndSettle();
+        
+        //No error visible
+        expect(find.byKey(const Key('error')), findsNothing);
       });
 
       testWidgets('0 division', (tester) async {
