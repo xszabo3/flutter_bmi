@@ -35,22 +35,32 @@ class BmiViewModel extends ChangeNotifier {
     try {
       unit = await model.switchUnit();
     } catch(e) {
-      errorMessage = 'Count not switch unit';
+      errorMessage = 'Cannot switch unit';
     }
     notifyListeners();
   }
 
   void calculate(){
-      final height = double.parse(heightTextController.text);
-      final weight = double.parse(weightTextController.text);
-      
-      if(height == 0){
-          bmi = null;
-          notifyListeners();
-          return;
-      }
-
-      bmi = (weight / (pow(height, 2)) * unit.conversionFactor).toStringAsFixed(2);
+    var height;
+    var weight;
+    try{
+      height = double.parse(heightTextController.text);
+      weight = double.parse(weightTextController.text);
+    }on FormatException {
+      errorMessage = 'The input is not a valid number use "." for decimal delimeter';
+      bmi = null;
       notifyListeners();
+      return;
+    }
+    errorMessage = null;
+      
+    if(height == 0){
+        bmi = null;
+        notifyListeners();
+        return;
+    }
+
+    bmi = (weight / (pow(height, 2)) * unit.conversionFactor).toStringAsFixed(2);
+    notifyListeners();
   }
 }
