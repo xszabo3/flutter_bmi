@@ -34,6 +34,7 @@ class _BmiPageState extends State<BmiPage> {
             children: [
               if(viewModel.errorMessage != null)...[
                 Text(
+                  key: const Key('error'),
                   'Error: ${viewModel.errorMessage}',
                   style: Theme.of(context)
                       .textTheme
@@ -72,8 +73,10 @@ class PageContents extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        InputRow(label: "Weight:", textfieldWidth: constants.textfieldWidth, unit: viewModel.unit, isHeight: false, textController: viewModel.weightTextController,),
-        InputRow(label: "Height:", textfieldWidth: constants.textfieldWidth, unit: viewModel.unit, isHeight: true, textController: viewModel.heightTextController,),
+        InputRow(label: "Weight:", textfieldWidth: constants.textfieldWidth, unit: viewModel.unit,
+          isHeight: false, textController: viewModel.weightTextController, textKey: const Key('weight'),),
+        InputRow(label: "Height:", textfieldWidth: constants.textfieldWidth, unit: viewModel.unit, 
+          isHeight: true, textController: viewModel.heightTextController, textKey: const Key('height'),),
         const SizedBox(height: 20,),
         
         //Buttons
@@ -88,6 +91,7 @@ class PageContents extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.all(8.0),
           child: ElevatedButton(
+            key: const Key('calculate_button'),
             onPressed: viewModel.heightTextController.text.isNotEmpty && viewModel.weightTextController.text.isNotEmpty ?
               () { viewModel.calculate(); } : 
               null,
@@ -98,7 +102,8 @@ class PageContents extends StatelessWidget {
         if(viewModel.bmi != null)...[
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: Text('BMI = ${viewModel.bmi}'),
+            child: Text(key: const Key('result'),
+              'BMI = ${viewModel.bmi}'),
           )
         ],
       ],
@@ -113,7 +118,8 @@ class InputRow extends StatelessWidget {
     required this.textfieldWidth,
     required this.unit,
     required this.isHeight,
-    required this.textController
+    required this.textController,
+    required this.textKey,
   });
 
   final String label;
@@ -121,6 +127,7 @@ class InputRow extends StatelessWidget {
   final Unit unit;
   final bool isHeight;
   final TextEditingController textController;
+  final Key textKey;
 
   @override
   Widget build(BuildContext context) {
@@ -133,6 +140,7 @@ class InputRow extends StatelessWidget {
           child: SizedBox(
             width: textfieldWidth,
             child: TextField(
+              key: textKey,
               controller: textController,
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
               inputFormatters: [FilteringTextInputFormatter.allow(RegExp('[0-9.]'))],
