@@ -11,6 +11,12 @@ class BmiViewModel extends ChangeNotifier {
   final weightTextController = TextEditingController();
   String? bmi;
 
+  Function()? get buttonStateHandler => 
+    heightTextController.text.isNotEmpty && weightTextController.text.isNotEmpty 
+    && heightTextController.text != '.' && weightTextController.text != '.'
+    ? calculate 
+    : null;
+
   BmiViewModel({
     required this.model
   });

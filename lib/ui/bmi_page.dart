@@ -93,9 +93,7 @@ class PageContents extends StatelessWidget {
           padding: const EdgeInsets.all(8.0),
           child: ElevatedButton(
             key: const Key('calculate_button'),
-            onPressed: viewModel.heightTextController.text.isNotEmpty && viewModel.weightTextController.text.isNotEmpty ?
-              () { viewModel.calculate(); } : 
-              null,
+            onPressed: viewModel.buttonStateHandler,
             child: const Text('Calculate')
           ),
         ),
@@ -120,15 +118,6 @@ class PageContents extends StatelessWidget {
     );
   }
 }
-
-class DoubleTextFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
-    return double.tryParse(newValue.text) == null ? oldValue : newValue;
-  }
-  // TODO remove
-}
-
 
 class InputRow extends StatelessWidget {
   const InputRow({
