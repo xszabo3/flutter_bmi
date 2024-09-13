@@ -84,9 +84,7 @@ class PageContents extends StatelessWidget {
           padding: const EdgeInsets.all(8.0),
           child: ElevatedButton(
             key: const Key('unit_button'),
-            onPressed: () { 
-              viewModel.switchUnit();
-            }, 
+            onPressed: viewModel.switchUnit, 
             child: Text(viewModel.unit.name.capitalize())),
         ),
         Padding(
