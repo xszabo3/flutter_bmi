@@ -73,10 +73,10 @@ class PageContents extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        InputRow(label: "Weight:", textfieldWidth: constants.textfieldWidth, unit: viewModel.unit,
-          isHeight: false, textController: viewModel.weightTextController, textKey: const Key('weight'),),
-        InputRow(label: "Height:", textfieldWidth: constants.textfieldWidth, unit: viewModel.unit, 
-          isHeight: true, textController: viewModel.heightTextController, textKey: const Key('height'),),
+        InputRow(label: "Weight:", textfieldWidth: constants.textfieldWidth, unitLabel: viewModel.unit.weightUnit,
+          textController: viewModel.weightTextController, textKey: const Key('weight'),),
+        InputRow(label: "Height:", textfieldWidth: constants.textfieldWidth, unitLabel: viewModel.unit.heightUnit, 
+          textController: viewModel.heightTextController, textKey: const Key('height'),),
         const SizedBox(height: 20,),
         
         //Buttons
@@ -121,21 +121,28 @@ class PageContents extends StatelessWidget {
   }
 }
 
+class DoubleTextFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+    return double.tryParse(newValue.text) == null ? oldValue : newValue;
+  }
+  // TODO remove
+}
+
+
 class InputRow extends StatelessWidget {
   const InputRow({
     super.key,
     required this.label,
     required this.textfieldWidth,
-    required this.unit,
-    required this.isHeight,
+    required this.unitLabel,
     required this.textController,
     required this.textKey,
   });
 
   final String label;
+  final String unitLabel;
   final double textfieldWidth;
-  final Unit unit;
-  final bool isHeight;
   final TextEditingController textController;
   final Key textKey;
 
@@ -153,11 +160,14 @@ class InputRow extends StatelessWidget {
               key: textKey,
               controller: textController,
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              inputFormatters: [FilteringTextInputFormatter.allow(RegExp('[0-9.]'))],
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp('[0-9.]')),
+                TextInputFormatter.withFunction((oldValue, newValue) => newValue.text.isEmpty || newValue.text == '.' || double.tryParse(newValue.text) != null ? newValue : oldValue),
+              ],
             ),
           ),
         ),
-        Text(isHeight ? unit.heightUnit : unit.weightUnit),
+        Text(unitLabel),
       ],
     );
   }
