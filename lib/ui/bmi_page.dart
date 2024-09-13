@@ -4,6 +4,7 @@ import 'package:flutter_bmi/logic/bmi_logic.dart';
 import 'package:flutter_bmi/model/bmi_model.dart';
 
 import 'package:flutter_bmi/utils/constants.dart' as constants;
+import 'package:provider/provider.dart';
 
 extension Capitalize on String{
   String capitalize() {
@@ -11,40 +12,35 @@ extension Capitalize on String{
   }
 }
 
-class BmiPage extends StatefulWidget {
-  const BmiPage({
+class BmiPage extends StatelessWidget {
+  BmiPage({
     super.key,
   });
 
-  @override
-  State<BmiPage> createState() => _BmiPageState();
-}
-
-class _BmiPageState extends State<BmiPage> {
-  var viewModel = BmiViewModel(model: BmiModel());
+  final viewModel = BmiViewModel(model: BmiModel());
 
   @override
   Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: viewModel, 
-      builder: (context, child) {
-        return Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if(viewModel.errorMessage != null)...[
-                Text(
-                  key: const Key('error'),
-                  'Error: ${viewModel.errorMessage}',
-                  style: Theme.of(context)
-                      .textTheme
-                      .labelSmall
-                      ?.apply(color: Colors.red),
-                ),
-              ],
-              PageContents(viewModel: viewModel)
-            ],
-        );
-      },
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => BmiViewModel(model: BmiModel())),
+      ],
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          if(viewModel.errorMessage != null)...[
+            Text(
+              key: const Key('error'),
+              'Error: ${viewModel.errorMessage}',
+              style: Theme.of(context)
+                  .textTheme
+                  .labelSmall
+                  ?.apply(color: Colors.red),
+            ),
+          ],
+          PageContents(viewModel: viewModel)
+        ],
+      )
     );
   }
 }
@@ -61,16 +57,17 @@ class PageContents extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        InputRow(label: "Weight:", textfieldWidth: constants.textfieldWidth, unitLabel: viewModel.unit.weightUnit,
+
+        InputRow(label: "Weight:", textfieldWidth: constants.textfieldWidth, isHeight: false,
           textController: viewModel.weightTextController , textKey: const Key('weight'),),
-        InputRow(label: "Height:", textfieldWidth: constants.textfieldWidth, unitLabel: viewModel.unit.heightUnit, 
+        InputRow(label: "Height:", textfieldWidth: constants.textfieldWidth, isHeight: true, 
           textController: viewModel.heightTextController, textKey: const Key('height'),),
         const SizedBox(height: 20,),
         
         //Buttons
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: UnitToggle(viewModel: viewModel),
+        const Padding(
+          padding: EdgeInsets.all(8.0),
+          child: UnitToggle(),
         ),
         Padding(
           padding: const EdgeInsets.all(8.0),
@@ -105,10 +102,7 @@ class PageContents extends StatelessWidget {
 class UnitToggle extends StatefulWidget {
   const UnitToggle({
     super.key,
-    required this.viewModel,
   });
-
-  final BmiViewModel viewModel;
 
   @override
   State<UnitToggle> createState() => _UnitToggleState();
@@ -116,11 +110,18 @@ class UnitToggle extends StatefulWidget {
 
 class _UnitToggleState extends State<UnitToggle> {
   List<bool> isSelected = [true, false];
-  
+  late BmiViewModel viewModelSet;
+
+  @override
+  void initState() {
+    viewModelSet = Provider.of<BmiViewModel>(context, listen: false);
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
     final Color primary = Theme.of(context).colorScheme.primary;
+    
     return ToggleButtons(
       isSelected: isSelected,
       selectedColor: Colors.white,
@@ -129,7 +130,8 @@ class _UnitToggleState extends State<UnitToggle> {
       renderBorder: true,
       borderRadius: BorderRadius.circular(10),
       onPressed: (int newIndex) {
-        widget.viewModel.setUnit(newIndex);
+
+        viewModelSet.setUnit(newIndex);
         setState(() {
           for (int index = 0; index < isSelected.length; index++) {
             if (index == newIndex) {
@@ -164,13 +166,13 @@ class InputRow extends StatelessWidget {
     super.key,
     required this.label,
     required this.textfieldWidth,
-    required this.unitLabel,
+    required this.isHeight,
     required this.textController,
     required this.textKey,
   });
 
   final String label;
-  final String unitLabel;
+  final bool isHeight;
   final double textfieldWidth;
   final TextEditingController textController;
   final Key textKey;
@@ -196,7 +198,11 @@ class InputRow extends StatelessWidget {
             ),
           ),
         ),
-        Text(unitLabel),
+        Consumer<BmiViewModel>(
+          builder: (_, model, child) {
+            return Text( isHeight ?  model.unit.heightUnit : model.unit.weightUnit);
+          } 
+        ),
       ],
     );
   }

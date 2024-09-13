@@ -7,8 +7,10 @@ environment:
   sdk: ^3.5.2
 
 dependencies:
+  consumer: ^2.3.1
   flutter:
     sdk: flutter
+  provider: ^6.1.2
 
 dev_dependencies:
   flutter_test:
