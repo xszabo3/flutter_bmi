@@ -21,7 +21,6 @@ class BmiPage extends StatefulWidget {
 }
 
 class _BmiPageState extends State<BmiPage> {
-  
   var viewModel = BmiViewModel(model: BmiModel());
 
   @override
@@ -42,18 +41,7 @@ class _BmiPageState extends State<BmiPage> {
                       ?.apply(color: Colors.red),
                 ),
               ],
-              
-              ValueListenableBuilder(
-                valueListenable: viewModel.heightTextController, 
-                builder: (context, TextEditingValue valueHeight, __) {
-                  return ValueListenableBuilder(
-                    valueListenable: viewModel.weightTextController, 
-                    builder: (context, TextEditingValue valueHeight, __) {
-                      return PageContents(viewModel: viewModel);
-                    }
-                  );
-                }
-              ),
+              PageContents(viewModel: viewModel)
             ],
         );
       },
@@ -74,7 +62,7 @@ class PageContents extends StatelessWidget {
     return Column(
       children: [
         InputRow(label: "Weight:", textfieldWidth: constants.textfieldWidth, unitLabel: viewModel.unit.weightUnit,
-          textController: viewModel.weightTextController, textKey: const Key('weight'),),
+          textController: viewModel.weightTextController , textKey: const Key('weight'),),
         InputRow(label: "Height:", textfieldWidth: constants.textfieldWidth, unitLabel: viewModel.unit.heightUnit, 
           textController: viewModel.heightTextController, textKey: const Key('height'),),
         const SizedBox(height: 20,),
@@ -98,14 +86,14 @@ class PageContents extends StatelessWidget {
             padding: const EdgeInsets.all(8.0),
             child: Text(
               key: const Key('result'),
-              style: viewModel.bmi == null ?
-                TextStyle(backgroundColor: Theme.of(context).colorScheme.primary) :
-                switch(double.parse(viewModel.bmi!)) {
-                  < 18.5 => const TextStyle(backgroundColor: Colors.yellow),
-                  >= 30.0 => const TextStyle(backgroundColor: Colors.red),
-                  >= 25.0 => const TextStyle(backgroundColor: Colors.orange),
-                  _ => const TextStyle(backgroundColor: Colors.transparent),
-                },
+              style: viewModel.bmi == null || viewModel.bmi == 'null'
+                ? TextStyle(backgroundColor: Theme.of(context).colorScheme.primary)
+                : switch(double.parse(viewModel.bmi!)) {
+                    < 18.5 => const TextStyle(backgroundColor: Colors.yellow),
+                    >= 30.0 => const TextStyle(backgroundColor: Colors.red),
+                    >= 25.0 => const TextStyle(backgroundColor: Colors.orange),
+                    _ => const TextStyle(backgroundColor: Colors.transparent),
+                  },
               'BMI = ${viewModel.bmi}'),
           )
         ],
@@ -115,7 +103,7 @@ class PageContents extends StatelessWidget {
 }
 
 class UnitToggle extends StatefulWidget {
-  UnitToggle({
+  const UnitToggle({
     super.key,
     required this.viewModel,
   });

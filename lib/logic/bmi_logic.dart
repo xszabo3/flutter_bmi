@@ -4,29 +4,37 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bmi/model/bmi_model.dart';
 
 class BmiViewModel extends ChangeNotifier {
-  final BmiModel model;
+  final BmiModel _model;
   String? errorMessage;
   final heightTextController = TextEditingController();
   final weightTextController = TextEditingController();
-  String? bmi;
-
-  Unit get unit => model.data.unit;
+  
+  String? get bmi => _model.data.bmi;
+  String get height => _model.data.height;
+  String get weight => _model.data.weight;
+  
+  Unit get unit => _model.data.unit;
 
   Function()? get buttonStateHandler => 
-    heightTextController.text.isNotEmpty && weightTextController.text.isNotEmpty 
-    && heightTextController.text != '.' && weightTextController.text != '.'
+    height.isNotEmpty && weight.isNotEmpty 
+    && height != '.' && weight != '.'
     ? calculate 
     : null;
   
   BmiViewModel({
-    required this.model
-  });
+    required model
+  }) : _model = model {
 
-  @override
-  void dispose() {  
-    heightTextController.dispose();
-    weightTextController.dispose();
-    super.dispose();
+    init();
+  }
+
+  init(){
+    heightTextController.addListener((){
+      _model.data.height = heightTextController.text;
+    });
+    weightTextController.addListener((){
+      _model.data.weight = weightTextController.text;
+    });
   }
 
   /*Future<void> currentUnit() async { //TODO
@@ -48,7 +56,7 @@ class BmiViewModel extends ChangeNotifier {
   }*/
 
   void setUnit(int index){
-    model.setUnit(index);
+    _model.setUnit(index);
     notifyListeners();
   }
 
@@ -56,23 +64,23 @@ class BmiViewModel extends ChangeNotifier {
     double height;
     double weight;
     try{
-      height = double.parse(heightTextController.text);
-      weight = double.parse(weightTextController.text);
+      height = double.parse(this.height);
+      weight = double.parse(this.weight);
     }on FormatException {
       errorMessage = 'The input is not a valid number. Use "." for decimal delimeter';
-      bmi = null;
+      _model.data.bmi = null;
       notifyListeners();
       return;
     }
     errorMessage = null;
       
     if(height == 0){
-        bmi = null;
+        _model.data.bmi = null;
         notifyListeners();
         return;
     }
 
-    bmi = (weight / (pow(height, 2)) * model.data.unit.conversionFactor).toStringAsFixed(2);
+    _model.data.bmi = (weight / (pow(height, 2)) * unit.conversionFactor).toStringAsFixed(2);
     notifyListeners();
   }
 }

@@ -23,9 +23,9 @@ enum BmiCategory{
 
 class BmiData{
   Unit unit;
-  double height;
-  double weight;
-  double? bmi;
+  String height;
+  String weight;
+  String? bmi;
   String? errorMessage;
   BmiCategory category;
 
@@ -39,7 +39,7 @@ class BmiData{
 
 class BmiModel{
   final _unitsLength = Unit.values.length;
-  final BmiData _data = BmiData(unit: Unit.metric, height: 0, weight: 0, category: BmiCategory.unknown);
+  final BmiData _data = BmiData(unit: Unit.metric, height: '0', weight: '0', category: BmiCategory.unknown);
 
   BmiData get data => _data;
 
