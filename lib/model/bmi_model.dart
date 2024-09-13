@@ -21,7 +21,7 @@ enum BmiCategory{
   obese
 }
 
-class BmiData{
+class BmiData{ //TODO remove
   Unit unit;
   String height;
   String weight;
@@ -38,14 +38,18 @@ class BmiData{
 }
 
 class BmiModel{
-  final _unitsLength = Unit.values.length;
-  final BmiData _data = BmiData(unit: Unit.metric, height: '0', weight: '0', category: BmiCategory.unknown);
+  Unit unit = Unit.metric;
+  String height = '0';
+  String weight = '0';
+  String? bmi;
+  String? errorMessage;
+  BmiCategory category = BmiCategory.unknown;
 
-  BmiData get data => _data;
+  final _unitsLength = Unit.values.length;
 
   void setUnit(int index){
     index < _unitsLength
-    ? _data.unit = Unit.values[index]
+    ? unit = Unit.values[index]
     : throw UnimplementedError('This unit is not implemented');
   }
 }

@@ -9,17 +9,17 @@ class BmiViewModel extends ChangeNotifier {
   final heightTextController = TextEditingController();
   final weightTextController = TextEditingController();
   
-  String? get bmi => _model.data.bmi;
-  String get height => _model.data.height;
-  String get weight => _model.data.weight;
+  String? get bmi => _model.bmi;
+  String get height => _model.height;
+  String get weight => _model.weight;
   
-  Unit get unit => _model.data.unit;
+  Unit get unit => _model.unit;
 
-  Function()? get buttonStateHandler => 
+  Function()? buttonStateHandler(height, weight) => 
     height.isNotEmpty && weight.isNotEmpty 
     && height != '.' && weight != '.'
     ? calculate 
-    : null;
+    : null;//TODO uses default values fix this next
   
   BmiViewModel({
     required model
@@ -30,10 +30,10 @@ class BmiViewModel extends ChangeNotifier {
 
   init(){
     heightTextController.addListener((){
-      _model.data.height = heightTextController.text;
+      _model.height = heightTextController.text;
     });
     weightTextController.addListener((){
-      _model.data.weight = weightTextController.text;
+      _model.weight = weightTextController.text;
     });
   }
 
@@ -68,19 +68,19 @@ class BmiViewModel extends ChangeNotifier {
       weight = double.parse(this.weight);
     }on FormatException {
       errorMessage = 'The input is not a valid number. Use "." for decimal delimeter';
-      _model.data.bmi = null;
+      _model.bmi = null;
       notifyListeners();
       return;
     }
     errorMessage = null;
       
     if(height == 0){
-        _model.data.bmi = null;
+        _model.bmi = null;
         notifyListeners();
         return;
     }
 
-    _model.data.bmi = (weight / (pow(height, 2)) * unit.conversionFactor).toStringAsFixed(2);
+    _model.bmi = (weight / (pow(height, 2)) * unit.conversionFactor).toStringAsFixed(2);
     notifyListeners();
   }
 }

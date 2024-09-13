@@ -71,11 +71,7 @@ class PageContents extends StatelessWidget {
         ),
         Padding(
           padding: const EdgeInsets.all(8.0),
-          child: ElevatedButton(
-            key: const Key('calculate_button'),
-            onPressed: viewModel.buttonStateHandler,
-            child: const Text('Calculate')
-          ),
+          child: CalculateButton(viewModel: viewModel),
         ),
         //Result
         if(viewModel.bmi != null)...[
@@ -96,6 +92,26 @@ class PageContents extends StatelessWidget {
         ],
       ],
     );
+  }
+}
+
+class CalculateButton extends StatelessWidget {
+  const CalculateButton({
+    super.key,
+    required this.viewModel,
+  });
+
+  final BmiViewModel viewModel;
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<BmiViewModel>(builder: (_, model, child) {
+      return ElevatedButton(
+        key: const Key('calculate_button'),
+        onPressed: model.buttonStateHandler(model.height, model.weight),
+        child: const Text('Calculate')
+      );
+    });
   }
 }
 
@@ -153,11 +169,6 @@ class _UnitToggleState extends State<UnitToggle> {
         ),
       ],
     );
-    
-    /*ElevatedButton(
-      key: const Key('unit_button'),
-      onPressed: () {print('todo');}, //TODO
-      child: Text(viewModel.unit.name.capitalize()));*/
   }
 }
 
