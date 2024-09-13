@@ -5,18 +5,19 @@ import 'package:flutter_bmi/model/bmi_model.dart';
 
 class BmiViewModel extends ChangeNotifier {
   final BmiModel model;
-  Unit unit = Unit.values.first;
   String? errorMessage;
   final heightTextController = TextEditingController();
   final weightTextController = TextEditingController();
   String? bmi;
+
+  Unit get unit => model.data.unit;
 
   Function()? get buttonStateHandler => 
     heightTextController.text.isNotEmpty && weightTextController.text.isNotEmpty 
     && heightTextController.text != '.' && weightTextController.text != '.'
     ? calculate 
     : null;
-
+  
   BmiViewModel({
     required this.model
   });
@@ -28,7 +29,7 @@ class BmiViewModel extends ChangeNotifier {
     super.dispose();
   }
 
-  Future<void> currentUnit() async {
+  /*Future<void> currentUnit() async { //TODO
     try {
       unit = (await model.loadFromServer());
     } catch (e) {
@@ -39,10 +40,15 @@ class BmiViewModel extends ChangeNotifier {
 
   Future<void> switchUnit() async {
     try {
-      unit = await model.switchUnit();
+      unit = 
     } catch(e) {
       errorMessage = 'Cannot switch unit';
     }
+    notifyListeners();
+  }*/
+
+  void setUnit(int index){
+    model.setUnit(index);
     notifyListeners();
   }
 
@@ -66,7 +72,7 @@ class BmiViewModel extends ChangeNotifier {
         return;
     }
 
-    bmi = (weight / (pow(height, 2)) * unit.conversionFactor).toStringAsFixed(2);
+    bmi = (weight / (pow(height, 2)) * model.data.unit.conversionFactor).toStringAsFixed(2);
     notifyListeners();
   }
 }

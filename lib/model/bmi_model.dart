@@ -13,19 +13,39 @@ enum Unit{
   final double conversionFactor;
 }
 
-class BmiModel{
-  int index = 0;
-  final units = Unit.values;
-  final unitsLength = Unit.values.length;
-  
-  //Server simulation
-  Future<Unit> loadFromServer() async {
-    return await Future.value(Unit.values[index]);
-  }
+enum BmiCategory{
+  unknown,
+  underweight,
+  normal,
+  overweight,
+  obese
+}
 
-  //Allows multiple units in the future
-  Future<Unit> switchUnit() async{
-    index = ++index % unitsLength;
-    return await loadFromServer();
+class BmiData{
+  Unit unit;
+  double height;
+  double weight;
+  double? bmi;
+  String? errorMessage;
+  BmiCategory category;
+
+  BmiData({
+    required this.unit, 
+    required this.height, 
+    required this.weight,
+    required this.category,
+  });
+}
+
+class BmiModel{
+  final _unitsLength = Unit.values.length;
+  final BmiData _data = BmiData(unit: Unit.metric, height: 0, weight: 0, category: BmiCategory.unknown);
+
+  BmiData get data => _data;
+
+  void setUnit(int index){
+    index < _unitsLength
+    ? _data.unit = Unit.values[index]
+    : throw UnimplementedError('This unit is not implemented');
   }
 }

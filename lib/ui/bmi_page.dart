@@ -82,10 +82,7 @@ class PageContents extends StatelessWidget {
         //Buttons
         Padding(
           padding: const EdgeInsets.all(8.0),
-          child: ElevatedButton(
-            key: const Key('unit_button'),
-            onPressed: viewModel.switchUnit, 
-            child: Text(viewModel.unit.name.capitalize())),
+          child: UnitToggle(viewModel: viewModel),
         ),
         Padding(
           padding: const EdgeInsets.all(8.0),
@@ -114,6 +111,63 @@ class PageContents extends StatelessWidget {
         ],
       ],
     );
+  }
+}
+
+class UnitToggle extends StatefulWidget {
+  UnitToggle({
+    super.key,
+    required this.viewModel,
+  });
+
+  final BmiViewModel viewModel;
+
+  @override
+  State<UnitToggle> createState() => _UnitToggleState();
+}
+
+class _UnitToggleState extends State<UnitToggle> {
+  List<bool> isSelected = [true, false];
+  
+
+  @override
+  Widget build(BuildContext context) {
+    final Color primary = Theme.of(context).colorScheme.primary;
+    return ToggleButtons(
+      isSelected: isSelected,
+      selectedColor: Colors.white,
+      color: primary,
+      fillColor: primary,
+      renderBorder: true,
+      borderRadius: BorderRadius.circular(10),
+      onPressed: (int newIndex) {
+        widget.viewModel.setUnit(newIndex);
+        setState(() {
+          for (int index = 0; index < isSelected.length; index++) {
+            if (index == newIndex) {
+              isSelected[index] = true;
+            } else {
+              isSelected[index] = false;
+            }
+          }
+        });
+      },
+      children: const [
+        Padding(
+          padding: EdgeInsets.all(8.0),
+          child: Text('Metric'),
+        ),
+        Padding(
+          padding: EdgeInsets.all(8.0),
+          child: Text('Imperial'),
+        ),
+      ],
+    );
+    
+    /*ElevatedButton(
+      key: const Key('unit_button'),
+      onPressed: () {print('todo');}, //TODO
+      child: Text(viewModel.unit.name.capitalize()));*/
   }
 }
 
