@@ -15,14 +15,24 @@ extension Capitalize on String{
 extension ColorBmi on BmiCategory{
   Color get color {
     switch(this) {
-      case BmiCategory.unknown: return Colors.transparent;
       case BmiCategory.underweight: return Colors.yellow;
       case BmiCategory.normal: return Colors.green;
       case BmiCategory.overweight: return Colors.orange;
       case BmiCategory.obese: return Colors.red;
     }
   }
-} 
+}
+
+TextEditingValue doubleInputChecker(TextEditingValue old, TextEditingValue next){
+  if (next.text.isEmpty || next.text == '.'){
+    return next;
+  }
+
+  final value = double.tryParse(next.text);
+  return value != null && value > 0
+    ? next 
+    : old;
+}
 
 class BmiPage extends StatelessWidget {
   const BmiPage({
@@ -109,44 +119,26 @@ class CalculateButton extends StatelessWidget {
   }
 }
 
-class UnitToggle extends StatefulWidget {
+class UnitToggle extends StatelessWidget {
   const UnitToggle({
     super.key,
     required this.viewModel
   });
 
   final BmiViewModel viewModel;
-
-  @override
-  State<UnitToggle> createState() => _UnitToggleState();
-}
-
-class _UnitToggleState extends State<UnitToggle> {
-  List<bool> isSelected = [true, false];
-
+  
   @override
   Widget build(BuildContext context) {
     final Color primary = Theme.of(context).colorScheme.primary;
     
     return ToggleButtons(
-      isSelected: isSelected,
+      isSelected: Unit.values.map((e) => e == viewModel.unit).toList(),
       selectedColor: Colors.white,
       color: primary,
       fillColor: primary,
       renderBorder: true,
       borderRadius: BorderRadius.circular(10),
-      onPressed: (int newIndex) {
-        widget.viewModel.setUnit(newIndex);
-        setState(() {
-          for (int index = 0; index < isSelected.length; index++) {
-            if (index == newIndex) {
-              isSelected[index] = true;
-            } else {
-              isSelected[index] = false;
-            }
-          }
-        });
-      },
+      onPressed: viewModel.setUnit,
       children: const [
         Padding(
           padding: EdgeInsets.all(8.0),
@@ -193,18 +185,8 @@ class InputRow extends StatelessWidget {
               key: textKey,
               controller: textController,
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp('[0-9.]')),
-                TextInputFormatter.withFunction((oldValue, newValue) {
-                  if (newValue.text.isEmpty || newValue.text == '.'){
-                    return newValue;
-                  }
-
-                  final value = double.tryParse(newValue.text);
-                  return value != null && value > 0
-                  ? newValue 
-                  : oldValue;
-                },)
+              inputFormatters: const [
+                TextInputFormatter.withFunction(doubleInputChecker),
               ],
             ),
           ),

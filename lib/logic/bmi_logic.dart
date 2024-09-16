@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bmi/model/bmi_model.dart';
 
@@ -24,6 +25,7 @@ class BmiViewModel extends ChangeNotifier {
   double? get height => _model.height;
   double? get weight => _model.weight;
   Unit get unit => _model.unit;
+  BmiCategory get category => _model.category;
 
   set _update(BmiModel model){
     _model = model;
