@@ -22,9 +22,10 @@ enum BmiCategory{
 }
 
 class BmiModel{
-  Unit unit = Unit.metric;
-  String height = '';
-  String weight = '';
-  double? bmi;
-  String? errorMessage;
+  final Unit unit;
+  final double? height;
+  final double? weight;
+  final double? bmi;
+  
+  BmiModel(this.unit, this.height, this.weight, this.bmi);
 }

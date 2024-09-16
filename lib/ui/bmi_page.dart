@@ -34,22 +34,12 @@ class BmiPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => BmiViewModel(model: BmiModel())),
+        ChangeNotifierProvider(create: (_) => BmiViewModel(model: BmiModel(Unit.metric, null, null, null))),
       ],
       child: Consumer<BmiViewModel>(builder: (_, model, child) {
         return Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            if(model.errorMessage != null)...[
-              Text(
-                key: const Key('error'),
-                'Error: ${model.errorMessage}',
-                style: Theme.of(context)
-                    .textTheme
-                    .labelSmall
-                    ?.apply(color: Colors.red),
-              ),
-            ],
             child!
           ],
         );
@@ -208,7 +198,16 @@ class InputRow extends StatelessWidget {
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
               inputFormatters: [
                 FilteringTextInputFormatter.allow(RegExp('[0-9.]')),
-                TextInputFormatter.withFunction((oldValue, newValue) => newValue.text.isEmpty || newValue.text == '.' || double.tryParse(newValue.text) != null ? newValue : oldValue),
+                TextInputFormatter.withFunction((oldValue, newValue) {
+                  if (newValue.text.isEmpty || newValue.text == '.'){
+                    return newValue;
+                  }
+                  
+                  final value = double.tryParse(newValue.text);
+                  return value != null && value > 0
+                  ? newValue 
+                  : oldValue;
+                },)
               ],
             ),
           ),
