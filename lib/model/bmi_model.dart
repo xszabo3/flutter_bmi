@@ -1,16 +1,20 @@
 enum Unit{
-  metric(heightUnit: 'm', weightUnit: 'kg', conversionFactor: 1),
-  imperial(heightUnit: 'in', weightUnit: 'lb', conversionFactor: 703);
+  metric(heightUnit: 'm', weightUnit: 'kg', conversionFactor: 1, weightconverter: 0.4535924, heightconverter: 0.0254),
+  imperial(heightUnit: 'in', weightUnit: 'lb', conversionFactor: 703, weightconverter: 2.204623, heightconverter: 39.37008);
 
   const Unit({
     required this.heightUnit,
     required this.weightUnit,
-    required this.conversionFactor
+    required this.conversionFactor,
+    required this.weightconverter,
+    required this.heightconverter,
   });
 
   final String heightUnit;
   final String weightUnit;
   final double conversionFactor;
+  final double weightconverter;
+  final double heightconverter;
 }
 
 enum BmiCategory{

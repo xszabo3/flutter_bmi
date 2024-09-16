@@ -31,10 +31,19 @@ class BmiViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  String converter(double? state, double conversionFactor){
+      return state != null 
+        ? (state * conversionFactor).toStringAsFixed(2) 
+        : '';
+  }
+
   void setUnit(int index){
     assert(index >= 0 && index < Unit.values.length);
-
-    _update = _model.copyWith(unit: Unit.values[index]);
+    final newUnit = Unit.values[index];
+    _update = _model.copyWith(unit: newUnit);
+    
+    heightTextController.text = converter(height, newUnit.heightconverter);
+    weightTextController.text = converter(weight, newUnit.weightconverter);
   }
 
   set height(double? value){
