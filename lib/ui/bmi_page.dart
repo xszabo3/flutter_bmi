@@ -12,6 +12,18 @@ extension Capitalize on String{
   }
 }
 
+extension ColorBmi on BmiCategory{
+  Color get color {
+    switch(this) {
+      case BmiCategory.unknown: return Colors.transparent;
+      case BmiCategory.underweight: return Colors.yellow;
+      case BmiCategory.normal: return Colors.green;
+      case BmiCategory.overweight: return Colors.orange;
+      case BmiCategory.obese: return Colors.red;
+    }
+  }
+} 
+
 class BmiPage extends StatelessWidget {
   const BmiPage({
     super.key,
@@ -79,14 +91,7 @@ class PageContents extends StatelessWidget {
               padding: const EdgeInsets.all(8.0),
               child: Text(
                 key: const Key('result'),
-                style: model.bmi == null || model.bmi == 'null'
-                  ? TextStyle(backgroundColor: Theme.of(context).colorScheme.primary)
-                  : switch(model.category) {
-                      BmiCategory.underweight => const TextStyle(backgroundColor: Colors.yellow),
-                      BmiCategory.obese => const TextStyle(backgroundColor: Colors.red),
-                      BmiCategory.overweight => const TextStyle(backgroundColor: Colors.orange),
-                      _ => const TextStyle(backgroundColor: Colors.transparent),
-                    },
+                style: TextStyle(backgroundColor: ColorBmi(model.category).color),
                 'BMI = ${model.bmi}'),
             );
           }

@@ -10,10 +10,18 @@ class BmiViewModel extends ChangeNotifier {
   final heightTextController = TextEditingController();
   final weightTextController = TextEditingController();
   
-  String? get bmi => _model.bmi;
+  String? get bmi => _model.bmi?.toStringAsFixed(2);
   String get height => _model.height;
   String get weight => _model.weight;
   String? get errorMessage => _model.errorMessage;
+  
+  BmiCategory get category => switch(_model.bmi) {
+    null => BmiCategory.unknown,
+    < 18.5 => BmiCategory.underweight,
+    >= 30 => BmiCategory.obese,
+    >= 25 => BmiCategory.overweight,
+    _ => BmiCategory.normal,
+  };
 
   
   Unit get unit => _model.unit;
@@ -86,7 +94,7 @@ class BmiViewModel extends ChangeNotifier {
         return;
     }
 
-    _model.bmi = (weight / (pow(height, 2)) * unit.conversionFactor).toStringAsFixed(2);
+    _model.bmi = (weight / (pow(height, 2)) * unit.conversionFactor);
     notifyListeners();
   }
 }

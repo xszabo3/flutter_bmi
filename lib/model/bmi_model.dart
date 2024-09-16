@@ -25,7 +25,6 @@ class BmiModel{
   Unit unit = Unit.metric;
   String height = '';
   String weight = '';
-  String? bmi;
+  double? bmi;
   String? errorMessage;
-  BmiCategory category = BmiCategory.unknown;
 }
