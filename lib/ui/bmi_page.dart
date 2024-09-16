@@ -142,11 +142,14 @@ class UnitToggle extends StatelessWidget {
       children: const [
         Padding(
           padding: EdgeInsets.all(8.0),
-          child: Text('Metric'),
+          child: Text(
+            key: Key('unit_button_metric'),
+            'Metric'),
         ),
         Padding(
           padding: EdgeInsets.all(8.0),
-          child: Text('Imperial'),
+          child: Text(key: Key('unit_button_imperial'),
+          'Imperial'),
         ),
       ],
     );

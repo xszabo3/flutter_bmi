@@ -3,11 +3,11 @@ import 'package:flutter_bmi/model/bmi_model.dart';
 import 'package:test/test.dart';
 
 void main() {
-  late final BmiViewModel viewModel;
+  late BmiViewModel viewModel;
 
   group('Logic tests', () {
     setUpAll(() async {
-      viewModel = BmiViewModel(model: BmiModel(Unit.metric, null, null, null));
+      viewModel = BmiViewModel(model: BmiModel(Unit.metric, 1.78, 60, null));
     });
     
     group('Unit-calculation tests', () {
@@ -33,7 +33,30 @@ void main() {
     });
 
     group('Category tests', () {
+      test('Category ', () async {
+        viewModel.calculate();
+
+        expect(viewModel.category, BmiCategory.normal);
+
+        viewModel.heightTextController.text = '1';
+        viewModel.weightTextController.text = '10';
+        
+        viewModel.calculate();
+
+        expect(viewModel.category, BmiCategory.underweight);
       
+        viewModel.weightTextController.text = '25';
+        
+        viewModel.calculate();
+
+        expect(viewModel.category, BmiCategory.overweight);
+
+        viewModel.weightTextController.text = '250';
+        
+        viewModel.calculate();
+
+        expect(viewModel.category, BmiCategory.obese);
+      });
     });
   });
 }

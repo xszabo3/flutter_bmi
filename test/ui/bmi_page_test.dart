@@ -9,6 +9,8 @@ void main() {
 
       expect(find.text('Weight:'), findsOneWidget);
       expect(find.text('Height:'), findsOneWidget);
+      expect(find.text('Metric'), findsOneWidget);
+      expect(find.text('Imperial'), findsOneWidget);
 
       expect(find.text('Calculate'), findsOneWidget);
       expect(find.text('BMI calculator'), findsOneWidget);
@@ -73,9 +75,6 @@ void main() {
       testWidgets('Test default unit: metric', (tester) async {
         await tester.pumpWidget(const MainApp());
 
-        expect(find.text('Metric'), findsOneWidget);
-        expect(find.text('Imperial'), findsNothing);
-
         expect(find.text('kg'), findsOneWidget);
         expect(find.text('m'), findsOneWidget);
         expect(find.text('lb'), findsNothing);
@@ -93,11 +92,8 @@ void main() {
       testWidgets('Test unit: imperial', (tester) async {
         await tester.pumpWidget(const MainApp());
         //Switch to next unit
-        await tester.tap(find.byKey(const Key('unit_button')));
+        await tester.tap(find.byKey(const Key('unit_button_imperial')));
         await tester.pumpAndSettle();
-
-        expect(find.text('Imperial'), findsOneWidget);
-        expect(find.text('Metric'), findsNothing);
 
         expect(find.text('kg'), findsNothing);
         expect(find.text('m'), findsNothing);
@@ -116,61 +112,55 @@ void main() {
       testWidgets('Test unit looping', (tester) async {
         await tester.pumpWidget(const MainApp());
 
-        expect(find.text('Metric'), findsOneWidget);
-        expect(find.text('Imperial'), findsNothing);
+        expect(find.text('kg'), findsOneWidget);
+        expect(find.text('m'), findsOneWidget);
+        expect(find.text('lb'), findsNothing);
+        expect(find.text('in'), findsNothing);
 
-        await tester.tap(find.byKey(const Key('unit_button')));
+        await tester.tap(find.byKey(const Key('unit_button_imperial')));
         await tester.pumpAndSettle();
 
-        expect(find.text('Metric'), findsNothing);
-        expect(find.text('Imperial'), findsOneWidget);
+        expect(find.text('kg'), findsNothing);
+        expect(find.text('m'), findsNothing);
+        expect(find.text('lb'), findsOneWidget);
+        expect(find.text('in'), findsOneWidget);
 
-        await tester.tap(find.byKey(const Key('unit_button')));
+        await tester.tap(find.byKey(const Key('unit_button_metric')));
         await tester.pumpAndSettle();
-
-        expect(find.text('Metric'), findsOneWidget);
-        expect(find.text('Imperial'), findsNothing);
+        
+        expect(find.text('kg'), findsOneWidget);
+        expect(find.text('m'), findsOneWidget);
+        expect(find.text('lb'), findsNothing);
+        expect(find.text('in'), findsNothing);
       });
     });
 
     group('Errors', () {
       testWidgets('Invalid format', (tester) async {
         await tester.pumpWidget(const MainApp());
-        
-        expect(find.byKey(const Key('error')), findsNothing);
-
-        await tester.enterText(heightTextFinder, '70.07');
         await tester.enterText(weightTextFinder, '132.27.4');
         await tester.pumpAndSettle();
-        await tester.tap(buttonFinder);
+
+        expect(find.text('132.27.4'), findsNothing);
+
+        await tester.enterText(heightTextFinder, '132.27.4');
         await tester.pumpAndSettle();
 
-        //Error visible
-        expect(find.byKey(const Key('error')), findsOneWidget);
-
-        await tester.enterText(weightTextFinder, '132.27');
-        await tester.pumpAndSettle();
-        await tester.tap(buttonFinder);
-        await tester.pumpAndSettle();
-        
-        //No error visible
-        expect(find.byKey(const Key('error')), findsNothing);
+        expect(find.text('132.27.4'), findsNothing);
       });
 
-      testWidgets('0 division', (tester) async {
+      testWidgets('0 input', (tester) async {
         await tester.pumpWidget(const MainApp());
         
         expect(find.byKey(const Key('error')), findsNothing);
 
         await tester.enterText(heightTextFinder, '0');
-        await tester.enterText(weightTextFinder, '132');
+        await tester.enterText(weightTextFinder, '0');
         await tester.pumpAndSettle();
         await tester.tap(buttonFinder);
         await tester.pumpAndSettle();
 
-        //No reaction expected
-        expect(find.byKey(const Key('error')), findsNothing);
-        expect(find.byKey(const Key('result')), findsNothing);
+        expect(find.text('0'), findsNothing);
       });
     });
   });   
