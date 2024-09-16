@@ -82,8 +82,8 @@ class BmiViewModel extends ChangeNotifier {
 
   void init(){
     heightTextController.addListener((){
-      _clearBmi();
       height = double.tryParse(heightTextController.text);
+      _clearBmi();
     });
     weightTextController.addListener((){
       weight = double.tryParse(weightTextController.text);
