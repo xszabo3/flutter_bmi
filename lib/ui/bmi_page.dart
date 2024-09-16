@@ -13,11 +13,10 @@ extension Capitalize on String{
 }
 
 class BmiPage extends StatelessWidget {
-  BmiPage({
+  const BmiPage({
     super.key,
   });
 
-  final viewModel = BmiViewModel(model: BmiModel());
 
   @override
   Widget build(BuildContext context) {
@@ -25,22 +24,25 @@ class BmiPage extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => BmiViewModel(model: BmiModel())),
       ],
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          if(viewModel.errorMessage != null)...[
-            Text(
-              key: const Key('error'),
-              'Error: ${viewModel.errorMessage}',
-              style: Theme.of(context)
-                  .textTheme
-                  .labelSmall
-                  ?.apply(color: Colors.red),
-            ),
+      child: Consumer<BmiViewModel>(builder: (_, model, child) {
+        return Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if(model.errorMessage != null)...[
+              Text(
+                key: const Key('error'),
+                'Error: ${model.errorMessage}',
+                style: Theme.of(context)
+                    .textTheme
+                    .labelSmall
+                    ?.apply(color: Colors.red),
+              ),
+            ],
+            child!
           ],
-          PageContents(viewModel: viewModel)
-        ],
-      )
+        );
+      },
+      child: const PageContents(),)    
     );
   }
 }
@@ -48,10 +50,7 @@ class BmiPage extends StatelessWidget {
 class PageContents extends StatelessWidget {
   const PageContents({
     super.key,
-    required this.viewModel,
   });
-
-  final BmiViewModel viewModel;
 
   @override
   Widget build(BuildContext context) {
@@ -69,27 +68,30 @@ class PageContents extends StatelessWidget {
           padding: EdgeInsets.all(8.0),
           child: UnitToggle(),
         ),
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: CalculateButton(viewModel: viewModel),
+        const Padding(
+          padding: EdgeInsets.all(8.0),
+          child: CalculateButton(),
         ),
         //Result
-        if(viewModel.bmi != null)...[
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Text(
-              key: const Key('result'),
-              style: viewModel.bmi == null || viewModel.bmi == 'null'
-                ? TextStyle(backgroundColor: Theme.of(context).colorScheme.primary)
-                : switch(double.parse(viewModel.bmi!)) {
-                    < 18.5 => const TextStyle(backgroundColor: Colors.yellow),
-                    >= 30.0 => const TextStyle(backgroundColor: Colors.red),
-                    >= 25.0 => const TextStyle(backgroundColor: Colors.orange),
-                    _ => const TextStyle(backgroundColor: Colors.transparent),
-                  },
-              'BMI = ${viewModel.bmi}'),
-          )
-        ],
+        Consumer<BmiViewModel>(builder: (_, model, child) {
+          if(model.bmi != null){
+            return Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                key: const Key('result'),
+                style: model.bmi == null || model.bmi == 'null'
+                  ? TextStyle(backgroundColor: Theme.of(context).colorScheme.primary)
+                  : switch(model.category) {
+                      BmiCategory.underweight => const TextStyle(backgroundColor: Colors.yellow),
+                      BmiCategory.obese => const TextStyle(backgroundColor: Colors.red),
+                      BmiCategory.overweight => const TextStyle(backgroundColor: Colors.orange),
+                      _ => const TextStyle(backgroundColor: Colors.transparent),
+                    },
+                'BMI = ${model.bmi}'),
+            );
+          }
+          return Container();
+        })
       ],
     );
   }
@@ -98,10 +100,7 @@ class PageContents extends StatelessWidget {
 class CalculateButton extends StatelessWidget {
   const CalculateButton({
     super.key,
-    required this.viewModel,
   });
-
-  final BmiViewModel viewModel;
 
   @override
   Widget build(BuildContext context) {
