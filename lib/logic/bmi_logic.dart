@@ -26,15 +26,25 @@ class BmiViewModel extends ChangeNotifier {
   Unit get unit => _model.unit;
   BmiCategory get category => _model.category;
 
+  String converter(double? state, double conversionFactor){
+      return state != null 
+        ? (state * conversionFactor).toStringAsFixed(2) 
+        : '';
+  }
+
   set _update(BmiModel model){
     _model = model;
     notifyListeners();
   }
 
-  String converter(double? state, double conversionFactor){
-      return state != null 
-        ? (state * conversionFactor).toStringAsFixed(2) 
-        : '';
+  void _clearBmi(){
+    _model = BmiModel(
+      unit, 
+      height, 
+      weight,
+      null
+    );
+    notifyListeners();
   }
 
   void setUnit(int index){
@@ -54,7 +64,7 @@ class BmiViewModel extends ChangeNotifier {
     _update = _model.copyWith(weight: value);
   }
 
-  set _bmi(double? value){
+  set _bmi(double value){
     _update = _model.copyWith(bmi: value);
   }
 
@@ -72,10 +82,12 @@ class BmiViewModel extends ChangeNotifier {
 
   void init(){
     heightTextController.addListener((){
+      _clearBmi();
       height = double.tryParse(heightTextController.text);
     });
     weightTextController.addListener((){
       weight = double.tryParse(weightTextController.text);
+      _clearBmi();
     });
   }
 
