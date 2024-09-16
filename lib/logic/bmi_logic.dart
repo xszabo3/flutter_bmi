@@ -56,44 +56,21 @@ class BmiViewModel extends ChangeNotifier {
     });
   }
 
-  /*Future<void> currentUnit() async { //TODO
-    try {
-      unit = (await model.loadFromServer());
-    } catch (e) {
-      errorMessage = 'Could not get the Unit from the server';
-    }
-    notifyListeners();
-  }
-
-  Future<void> switchUnit() async {
-    try {
-      unit = 
-    } catch(e) {
-      errorMessage = 'Cannot switch unit';
-    }
-    notifyListeners();
-  }*/
-
   void calculate(){
     double height;
     double weight;
-    try{
-      height = double.parse(this.height);
-      weight = double.parse(this.weight);
-    }on FormatException {
-      _model.errorMessage = 'The input is not a valid number. Use "." for decimal delimeter';
-      _model.bmi = null;
-      notifyListeners();
-      return;
-    }
-    _model.errorMessage = null;
+
+    // Button is active when height and weight have valid data
+    height = double.parse(this.height);
+    weight = double.parse(this.weight);
       
     if(height == 0){
         _model.bmi = null;
+        _model.errorMessage = 'Wrong input - 0 height is impossible!';
         notifyListeners();
         return;
     }
-
+    _model.errorMessage = null;
     _model.bmi = (weight / (pow(height, 2)) * unit.conversionFactor);
     notifyListeners();
   }
