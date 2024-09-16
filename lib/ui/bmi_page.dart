@@ -40,11 +40,10 @@ class BmiPage extends StatelessWidget {
         return Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            child!
+            PageContents(viewModel: model,)
           ],
         );
-      },
-      child: const PageContents(),)    
+      },)    
     );
   }
 }
@@ -52,7 +51,10 @@ class BmiPage extends StatelessWidget {
 class PageContents extends StatelessWidget {
   const PageContents({
     super.key,
+    required this.viewModel
   });
+
+  final BmiViewModel viewModel;
 
   @override
   Widget build(BuildContext context) {
@@ -60,33 +62,30 @@ class PageContents extends StatelessWidget {
       children: [
 
         InputRow(label: "Weight:", textfieldWidth: constants.textfieldWidth, isHeight: false,
-          textController: Provider.of<BmiViewModel>(context, listen: false).weightTextController , textKey: const Key('weight'),),
+          textController: viewModel.weightTextController , textKey: const Key('weight'),viewModel: viewModel,),
         InputRow(label: "Height:", textfieldWidth: constants.textfieldWidth, isHeight: true, 
-          textController: Provider.of<BmiViewModel>(context, listen: false).heightTextController, textKey: const Key('height'),),
+          textController: viewModel.heightTextController, textKey: const Key('height'),viewModel: viewModel,),
         const SizedBox(height: 20,),
         
         //Buttons
-        const Padding(
-          padding: EdgeInsets.all(8.0),
-          child: UnitToggle(),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: UnitToggle(viewModel: viewModel,),
         ),
-        const Padding(
-          padding: EdgeInsets.all(8.0),
-          child: CalculateButton(),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: CalculateButton(viewModel: viewModel,),
         ),
         //Result
-        Consumer<BmiViewModel>(builder: (_, model, child) {
-          if(model.bmi != null){
-            return Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                key: const Key('result'),
-                style: TextStyle(backgroundColor: ColorBmi(model.category).color),
-                'BMI = ${model.bmi}'),
-            );
-          }
-          return Container();
-        })
+        if(viewModel.bmi != null)...[
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              key: const Key('result'),
+              style: TextStyle(backgroundColor: ColorBmi(viewModel.category).color),
+              'BMI = ${viewModel.bmi}'),
+          )
+        ],
       ],
     );
   }
@@ -95,24 +94,28 @@ class PageContents extends StatelessWidget {
 class CalculateButton extends StatelessWidget {
   const CalculateButton({
     super.key,
+    required this.viewModel
   });
+
+  final BmiViewModel viewModel;
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<BmiViewModel>(builder: (_, model, child) {
-      return ElevatedButton(
+    return ElevatedButton(
         key: const Key('calculate_button'),
-        onPressed: model.buttonStateHandler,
+        onPressed: viewModel.buttonStateHandler,
         child: const Text('Calculate')
-      );
-    });
+    );
   }
 }
 
 class UnitToggle extends StatefulWidget {
   const UnitToggle({
     super.key,
+    required this.viewModel
   });
+
+  final BmiViewModel viewModel;
 
   @override
   State<UnitToggle> createState() => _UnitToggleState();
@@ -120,13 +123,6 @@ class UnitToggle extends StatefulWidget {
 
 class _UnitToggleState extends State<UnitToggle> {
   List<bool> isSelected = [true, false];
-  late BmiViewModel viewModelSet;
-
-  @override
-  void initState() {
-    viewModelSet = Provider.of<BmiViewModel>(context, listen: false);
-    super.initState();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -140,8 +136,7 @@ class _UnitToggleState extends State<UnitToggle> {
       renderBorder: true,
       borderRadius: BorderRadius.circular(10),
       onPressed: (int newIndex) {
-
-        viewModelSet.setUnit(newIndex);
+        widget.viewModel.setUnit(newIndex);
         setState(() {
           for (int index = 0; index < isSelected.length; index++) {
             if (index == newIndex) {
@@ -174,8 +169,10 @@ class InputRow extends StatelessWidget {
     required this.isHeight,
     required this.textController,
     required this.textKey,
+    required this.viewModel
   });
 
+  final BmiViewModel viewModel;
   final String label;
   final bool isHeight;
   final double textfieldWidth;
@@ -202,7 +199,7 @@ class InputRow extends StatelessWidget {
                   if (newValue.text.isEmpty || newValue.text == '.'){
                     return newValue;
                   }
-                  
+
                   final value = double.tryParse(newValue.text);
                   return value != null && value > 0
                   ? newValue 
@@ -212,11 +209,7 @@ class InputRow extends StatelessWidget {
             ),
           ),
         ),
-        Consumer<BmiViewModel>(
-          builder: (_, model, child) {
-            return Text( isHeight ?  model.unit.heightUnit : model.unit.weightUnit);
-          } 
-        ),
+        Text( isHeight ? viewModel.unit.heightUnit : viewModel.unit.weightUnit),
       ],
     );
   }
