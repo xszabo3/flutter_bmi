@@ -39,8 +39,8 @@ class BmiData{ //TODO remove
 
 class BmiModel{
   Unit unit = Unit.metric;
-  String height = '0';
-  String weight = '0';
+  String height = '';
+  String weight = '';
   String? bmi;
   String? errorMessage;
   BmiCategory category = BmiCategory.unknown;

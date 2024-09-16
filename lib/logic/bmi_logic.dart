@@ -15,11 +15,11 @@ class BmiViewModel extends ChangeNotifier {
   
   Unit get unit => _model.unit;
 
-  Function()? buttonStateHandler(height, weight) => 
+  Function()? get buttonStateHandler => 
     height.isNotEmpty && weight.isNotEmpty 
     && height != '.' && weight != '.'
     ? calculate 
-    : null;//TODO uses default values fix this next
+    : null;
   
   BmiViewModel({
     required model
@@ -31,9 +31,11 @@ class BmiViewModel extends ChangeNotifier {
   init(){
     heightTextController.addListener((){
       _model.height = heightTextController.text;
+      notifyListeners();
     });
     weightTextController.addListener((){
       _model.weight = weightTextController.text;
+      notifyListeners();
     });
   }
 

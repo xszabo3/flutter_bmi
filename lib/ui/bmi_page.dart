@@ -59,9 +59,9 @@ class PageContents extends StatelessWidget {
       children: [
 
         InputRow(label: "Weight:", textfieldWidth: constants.textfieldWidth, isHeight: false,
-          textController: viewModel.weightTextController , textKey: const Key('weight'),),
+          textController: Provider.of<BmiViewModel>(context, listen: false).weightTextController , textKey: const Key('weight'),),
         InputRow(label: "Height:", textfieldWidth: constants.textfieldWidth, isHeight: true, 
-          textController: viewModel.heightTextController, textKey: const Key('height'),),
+          textController: Provider.of<BmiViewModel>(context, listen: false).heightTextController, textKey: const Key('height'),),
         const SizedBox(height: 20,),
         
         //Buttons
@@ -108,7 +108,7 @@ class CalculateButton extends StatelessWidget {
     return Consumer<BmiViewModel>(builder: (_, model, child) {
       return ElevatedButton(
         key: const Key('calculate_button'),
-        onPressed: model.buttonStateHandler(model.height, model.weight),
+        onPressed: model.buttonStateHandler,
         child: const Text('Calculate')
       );
     });
