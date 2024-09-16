@@ -26,5 +26,14 @@ class BmiModel{
   final double? weight;
   final double? bmi;
   
+  bool get valid => height != null && weight != null && height! > 0 && weight! > 0;
+  BmiCategory get category => switch(bmi) {
+    null => BmiCategory.normal,
+    < 18.5 => BmiCategory.underweight,
+    >= 30 => BmiCategory.obese,
+    >= 25 => BmiCategory.overweight,
+    _ => BmiCategory.normal,
+  };
+
   BmiModel(this.unit, this.height, this.weight, this.bmi);
 }

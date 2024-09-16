@@ -3,9 +3,19 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_bmi/model/bmi_model.dart';
 
+extension BmiModelExt on BmiModel {
+  BmiModel copyWith({Unit? unit, double? height, double? weight, double? bmi}){
+    return BmiModel(
+      unit ?? this.unit, 
+      height ?? this.height, 
+      weight ?? this.weight,
+      bmi ?? this.bmi
+    );
+  }
+}
+
 class BmiViewModel extends ChangeNotifier {
   BmiModel _model;
-  final _unitsLength = Unit.values.length;
 
   final heightTextController = TextEditingController();
   final weightTextController = TextEditingController();
@@ -14,40 +24,34 @@ class BmiViewModel extends ChangeNotifier {
   double? get height => _model.height;
   double? get weight => _model.weight;
   Unit get unit => _model.unit;
-  
-  BmiCategory get category => switch(_model.bmi) {
-    null => BmiCategory.normal,
-    < 18.5 => BmiCategory.underweight,
-    >= 30 => BmiCategory.obese,
-    >= 25 => BmiCategory.overweight,
-    _ => BmiCategory.normal,
-  };
 
-  void setUnit(int index){
-    index < _unitsLength
-    ? _model = BmiModel(Unit.values[index], _model.height, _model.weight, _model.bmi)
-    : throw UnimplementedError('This unit is not implemented');
+  set _update(BmiModel model){
+    _model = model;
     notifyListeners();
   }
 
+  void setUnit(int index){
+    assert(index >= 0 && index < Unit.values.length);
+
+    _update = _model.copyWith(unit: Unit.values[index]);
+  }
+
   set height(double? value){
-    _model = BmiModel(unit, value, _model.weight, _model.bmi);
+    _update = _model.copyWith(height: value);
   }
 
   set weight(double? value){
-    _model = BmiModel(unit, _model.height, value, _model.bmi);
+    _update = _model.copyWith(weight: value);
   }
 
   set _bmi(double? value){
-    _model = BmiModel(unit, _model.height, _model.weight, value);
+    _update = _model.copyWith(bmi: value);
   }
 
-
-
   Function()? get buttonStateHandler => 
-    height == null || weight == null
-    ? null 
-    : calculate;
+    _model.valid
+      ? calculate
+      : null;
   
   BmiViewModel({
     required model
@@ -59,17 +63,14 @@ class BmiViewModel extends ChangeNotifier {
   void init(){
     heightTextController.addListener((){
       height = double.tryParse(heightTextController.text);
-      notifyListeners();
     });
     weightTextController.addListener((){
       weight = double.tryParse(weightTextController.text);
-      notifyListeners();
     });
   }
 
   void calculate(){
-    // Button is disabled if either height or weight is null
+    assert(_model.valid);
     _bmi = (weight! / (pow(height!, 2)) * unit.conversionFactor);
-    notifyListeners();
   }
 }
