@@ -5,15 +5,24 @@ import 'package:flutter_bmi/model/bmi_model.dart';
 
 class BmiViewModel extends ChangeNotifier {
   final BmiModel _model;
-  String? errorMessage;
+  final _unitsLength = Unit.values.length;
+
   final heightTextController = TextEditingController();
   final weightTextController = TextEditingController();
   
   String? get bmi => _model.bmi;
   String get height => _model.height;
   String get weight => _model.weight;
+  String? get errorMessage => _model.errorMessage;
+
   
   Unit get unit => _model.unit;
+  void setUnit(int index){
+    index < _unitsLength
+    ? _model.unit = Unit.values[index]
+    : throw UnimplementedError('This unit is not implemented');
+    notifyListeners();
+  }
 
   Function()? get buttonStateHandler => 
     height.isNotEmpty && weight.isNotEmpty 
@@ -57,11 +66,6 @@ class BmiViewModel extends ChangeNotifier {
     notifyListeners();
   }*/
 
-  void setUnit(int index){
-    _model.setUnit(index);
-    notifyListeners();
-  }
-
   void calculate(){
     double height;
     double weight;
@@ -69,12 +73,12 @@ class BmiViewModel extends ChangeNotifier {
       height = double.parse(this.height);
       weight = double.parse(this.weight);
     }on FormatException {
-      errorMessage = 'The input is not a valid number. Use "." for decimal delimeter';
+      _model.errorMessage = 'The input is not a valid number. Use "." for decimal delimeter';
       _model.bmi = null;
       notifyListeners();
       return;
     }
-    errorMessage = null;
+    _model.errorMessage = null;
       
     if(height == 0){
         _model.bmi = null;
