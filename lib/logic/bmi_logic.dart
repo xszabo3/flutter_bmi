@@ -16,7 +16,7 @@ class BmiViewModel extends ChangeNotifier {
   Unit get unit => _model.unit;
   
   BmiCategory get category => switch(_model.bmi) {
-    null => BmiCategory.unknown,
+    null => BmiCategory.normal,
     < 18.5 => BmiCategory.underweight,
     >= 30 => BmiCategory.obese,
     >= 25 => BmiCategory.overweight,

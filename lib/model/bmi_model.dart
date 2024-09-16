@@ -14,7 +14,6 @@ enum Unit{
 }
 
 enum BmiCategory{
-  unknown,
   underweight,
   normal,
   overweight,

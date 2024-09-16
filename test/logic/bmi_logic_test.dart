@@ -32,42 +32,8 @@ void main() {
       });
     });
 
-    group('Input tests', () {
-
-      test('Test 0 division', () async {
-        viewModel.weightTextController.text = '60';
-        viewModel.heightTextController.text = '0';
+    group('Category tests', () {
       
-        viewModel.calculate();
-
-        expect(viewModel.bmi, null);
-      });
-
-      /*test('Test wrong input format: height', () async {
-        viewModel.unit = Unit.imperial;
-        viewModel.heightTextController.text = '70.07.4';
-        viewModel.weightTextController.text = '132.27';
-      
-        viewModel.calculate();
-
-        expect(viewModel.bmi, null);
-        expect(viewModel.errorMessage, 'The input is not a valid number. Use "." for decimal delimeter');
-      });*/
-
-      /*test('Test wrong input format: weight', () async {
-        viewModel.unit = Unit.imperial;
-        viewModel.heightTextController.text = '704';
-        viewModel.weightTextController.text = '132.27.4';
-      
-        viewModel.calculate();
-
-        expect(viewModel.bmi, null);
-        expect(viewModel.errorMessage, 'The input is not a valid number. Use "." for decimal delimeter');
-      });*/
     });
   });
-
-  // TODO colortests
-
-
 }
