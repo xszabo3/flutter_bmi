@@ -7,7 +7,7 @@ void main() {
 
   group('Logic tests', () {
     setUpAll(() async {
-      viewModel = BmiViewModel(model: BmiModel(Unit.metric, 1.78, 60, null));
+      viewModel = BmiViewModel(model: BmiModel(Unit.metric, 1.78, 60, Future.value(null)));
     });
     
     group('Unit-calculation tests', () {

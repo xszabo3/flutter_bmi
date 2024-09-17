@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bmi/model/bmi_model.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 extension BmiModelExt on BmiModel {
   BmiModel copyWith({Unit? unit, double? height, double? weight, Future<double?>? bmi}){
@@ -24,7 +25,6 @@ class BmiViewModel extends ChangeNotifier {
   double? get weight => _model.weight;
   Unit get unit => _model.unit;
   BmiCategory Function(double? input) get category => _model.category;
-  //BmiCategory get category => _model.category();
 
   String converter(double? state, double conversionFactor){
       return state != null 
@@ -100,3 +100,7 @@ class BmiViewModel extends ChangeNotifier {
     notifyListeners();
   }
 }
+
+final viewModelProvider = ChangeNotifierProvider<BmiViewModel>((ref) {
+  return BmiViewModel(model: BmiModel(Unit.metric, 1.78, 60, Future.value(null)));
+});

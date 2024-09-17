@@ -4,7 +4,8 @@ import 'package:flutter_bmi/logic/bmi_logic.dart';
 import 'package:flutter_bmi/model/bmi_model.dart';
 
 import 'package:flutter_bmi/utils/constants.dart' as constants;
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:provider/provider.dart' as prov;
 
 extension Capitalize on String{
   String capitalize() {
@@ -34,20 +35,19 @@ TextEditingValue doubleInputChecker(TextEditingValue old, TextEditingValue next)
     : old;
 }
 
-class BmiPage extends StatelessWidget {
+class BmiPage extends ConsumerWidget {
   const BmiPage({
     super.key,
   });
 
 
   @override
-  Widget build(BuildContext context) {
-    return MultiProvider(
+  Widget build(BuildContext context, WidgetRef  ref) {
+    return prov.MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => BmiViewModel(
-          model: BmiModel(Unit.metric, null, null, Future.value(null)))),
+        prov.ChangeNotifierProvider.value(value: ref.watch(viewModelProvider.notifier))
       ],
-      child: Consumer<BmiViewModel>(builder: (_, model, child) {
+      child: prov.Consumer<BmiViewModel>(builder: (_, model, child) {
         return Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
