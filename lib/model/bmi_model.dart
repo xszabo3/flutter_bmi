@@ -28,12 +28,12 @@ class BmiModel{
   final Unit unit;
   final double? height;
   final double? weight;
-  final double? bmi;
+  final Future<double?> bmi;
 
   BmiModel(this.unit, this.height, this.weight, this.bmi);
 
   bool get valid => height != null && weight != null && height! > 0 && weight! > 0;
-  BmiCategory get category => switch(bmi) {
+  BmiCategory category(double? input) => switch(input) {
     null => BmiCategory.normal,
     < 18.5 => BmiCategory.underweight,
     >= 30 => BmiCategory.obese,

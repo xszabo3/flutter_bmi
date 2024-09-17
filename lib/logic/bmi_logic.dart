@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bmi/model/bmi_model.dart';
 
 extension BmiModelExt on BmiModel {
-  BmiModel copyWith({Unit? unit, double? height, double? weight, double? bmi}){
+  BmiModel copyWith({Unit? unit, double? height, double? weight, Future<double?>? bmi}){
     return BmiModel(
       unit ?? this.unit, 
       height ?? this.height, 
@@ -19,11 +19,12 @@ class BmiViewModel extends ChangeNotifier {
   final weightTextController = TextEditingController();
   final resultController = TextEditingController();
   
-  Future<double?> bmi = Future.value(null);
+  Future<double?> get bmi => _model.bmi;
   double? get height => _model.height;
   double? get weight => _model.weight;
   Unit get unit => _model.unit;
-  BmiCategory get category => _model.category;
+  BmiCategory Function(double? input) get category => _model.category;
+  //BmiCategory get category => _model.category();
 
   String converter(double? state, double conversionFactor){
       return state != null 
@@ -41,9 +42,8 @@ class BmiViewModel extends ChangeNotifier {
       unit, 
       height, 
       weight,
-      null
+      Future.value(null),
     );
-    bmi = Future.value(null);
     notifyListeners();
   }
 
@@ -64,7 +64,7 @@ class BmiViewModel extends ChangeNotifier {
     _update = _model.copyWith(weight: value);
   }
 
-  set _bmi(double value){
+  set _bmi(Future<double?> value){
     _update = _model.copyWith(bmi: value);
   }
 
@@ -93,12 +93,10 @@ class BmiViewModel extends ChangeNotifier {
 
   void calculate() async {
     assert(_model.valid);
-    bmi = _model.calculate().catchError((err) {
+    _bmi = _model.calculate().catchError((err) {
       _clearBmi();
       throw err;
     });
     notifyListeners();
-
-    _bmi = (await bmi)!;
   }
 }

@@ -44,7 +44,8 @@ class BmiPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => BmiViewModel(model: BmiModel(Unit.metric, null, null, null))),
+        ChangeNotifierProvider(create: (_) => BmiViewModel(
+          model: BmiModel(Unit.metric, null, null, Future.value(null)))),
       ],
       child: Consumer<BmiViewModel>(builder: (_, model, child) {
         return Column(
@@ -108,7 +109,7 @@ class PageContents extends StatelessWidget {
               padding: const EdgeInsets.all(8.0),
               child: Text(
                 key: const Key('result'),
-                style: TextStyle(backgroundColor: ColorBmi(viewModel.category).color),
+                style: TextStyle(backgroundColor: ColorBmi(viewModel.category(snapshot.data as double?)).color),
                 'BMI = ${snapshot.data}'),
             );
           }
