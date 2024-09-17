@@ -73,15 +73,15 @@ class PageContents extends StatelessWidget {
       children: [
 
         InputRow(label: "Weight:", textfieldWidth: constants.textfieldWidth, isHeight: false,
-          textController: viewModel.weightTextController , textKey: const Key('weight'),viewModel: viewModel,),
+          textController: viewModel.weightTextController , textKey: const Key('weight'),),
         InputRow(label: "Height:", textfieldWidth: constants.textfieldWidth, isHeight: true, 
-          textController: viewModel.heightTextController, textKey: const Key('height'),viewModel: viewModel,),
+          textController: viewModel.heightTextController, textKey: const Key('height'),),
         const SizedBox(height: 20,),
         
         //Buttons
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: UnitToggle(viewModel: viewModel,),
+        const Padding(
+          padding: EdgeInsets.all(8.0),
+          child: UnitToggle(),
         ),
         Padding(
           padding: const EdgeInsets.all(8.0),
@@ -109,7 +109,7 @@ class PageContents extends StatelessWidget {
               padding: const EdgeInsets.all(8.0),
               child: Text(
                 key: const Key('result'),
-                style: TextStyle(backgroundColor: ColorBmi(viewModel.category(snapshot.data as double?)).color),
+                style: TextStyle(backgroundColor: ColorBmi(viewModel.category(snapshot.data)).color),
                 'BMI = ${snapshot.data}'),
             );
           }
@@ -137,26 +137,26 @@ class CalculateButton extends StatelessWidget {
   }
 }
 
-class UnitToggle extends StatelessWidget {
+class UnitToggle extends ConsumerWidget {
   const UnitToggle({
     super.key,
-    required this.viewModel
+   //required this.viewModel
   });
 
-  final BmiViewModel viewModel;
+  //final BmiViewModel viewModel;
   
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final Color primary = Theme.of(context).colorScheme.primary;
     
     return ToggleButtons(
-      isSelected: Unit.values.map((e) => e == viewModel.unit).toList(),
+      isSelected: Unit.values.map((e) => e == ref.watch(viewModelProvider.select((value) => value.unit))).toList(),
       selectedColor: Colors.white,
       color: primary,
       fillColor: primary,
       renderBorder: true,
       borderRadius: BorderRadius.circular(10),
-      onPressed: viewModel.setUnit,
+      onPressed: ref.read(viewModelProvider).setUnit,
       children: const [
         Padding(
           padding: EdgeInsets.all(8.0),
@@ -182,10 +182,8 @@ class InputRow extends StatelessWidget {
     required this.isHeight,
     required this.textController,
     required this.textKey,
-    required this.viewModel
   });
 
-  final BmiViewModel viewModel;
   final String label;
   final bool isHeight;
   final double textfieldWidth;
@@ -212,8 +210,23 @@ class InputRow extends StatelessWidget {
             ),
           ),
         ),
-        Text( isHeight ? viewModel.unit.heightUnit : viewModel.unit.weightUnit),
+        UnitLabel(isHeight: isHeight),
       ],
     );
+  }
+}
+
+class UnitLabel extends ConsumerWidget {
+  const UnitLabel({
+    super.key,
+    required this.isHeight,
+  });
+
+  final bool isHeight;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final unit = ref.watch(viewModelProvider).unit;
+    return Text( isHeight ? unit.heightUnit : unit.weightUnit);
   }
 }
