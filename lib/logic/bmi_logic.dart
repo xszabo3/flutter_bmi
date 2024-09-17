@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bmi/model/bmi_model.dart';
 
@@ -19,8 +17,9 @@ class BmiViewModel extends ChangeNotifier {
 
   final heightTextController = TextEditingController();
   final weightTextController = TextEditingController();
+  final resultController = TextEditingController();
   
-  String? get bmi => _model.bmi?.toStringAsFixed(2);
+  Future<double?> bmi = Future.value(null);
   double? get height => _model.height;
   double? get weight => _model.weight;
   Unit get unit => _model.unit;
@@ -44,6 +43,7 @@ class BmiViewModel extends ChangeNotifier {
       weight,
       null
     );
+    bmi = Future.value(null);
     notifyListeners();
   }
 
@@ -91,8 +91,14 @@ class BmiViewModel extends ChangeNotifier {
     });
   }
 
-  void calculate(){
+  void calculate() async {
     assert(_model.valid);
-    _bmi = (weight! / (pow(height!, 2)) * unit.conversionFactor);
+    bmi = _model.calculate().catchError((err) {
+      _clearBmi();
+      throw err;
+    });
+    notifyListeners();
+
+    _bmi = (await bmi)!;
   }
 }

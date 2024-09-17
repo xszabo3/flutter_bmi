@@ -86,16 +86,33 @@ class PageContents extends StatelessWidget {
           padding: const EdgeInsets.all(8.0),
           child: CalculateButton(viewModel: viewModel,),
         ),
-        //Result
-        if(viewModel.bmi != null)...[
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Text(
-              key: const Key('result'),
-              style: TextStyle(backgroundColor: ColorBmi(viewModel.category).color),
-              'BMI = ${viewModel.bmi}'),
-          )
-        ],
+        //Result    
+        FutureBuilder(
+          future: viewModel.bmi, 
+          builder: (context, snapshot) {
+            if(snapshot.connectionState == ConnectionState.waiting){
+              return const CircularProgressIndicator();
+            }
+            if(snapshot.hasError){
+              return Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  key: const Key('error'),
+                  snapshot.error.toString()),
+              );
+            }
+            if(snapshot.data == null){
+              return Container();
+            }
+            return Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                key: const Key('result'),
+                style: TextStyle(backgroundColor: ColorBmi(viewModel.category).color),
+                'BMI = ${snapshot.data}'),
+            );
+          }
+        ),
       ],
     );
   }
