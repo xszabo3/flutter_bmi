@@ -43,15 +43,15 @@ class BmiPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef  ref) {
-    return prov.MultiProvider(
+    return prov.MultiProvider( // TODO remove tomorrow
       providers: [
         prov.ChangeNotifierProvider.value(value: ref.watch(viewModelProvider.notifier))
       ],
       child: prov.Consumer<BmiViewModel>(builder: (_, model, child) {
-        return Column(
+        return const Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            PageContents(viewModel: model,)
+            PageContents()
           ],
         );
       },)    
@@ -62,10 +62,7 @@ class BmiPage extends ConsumerWidget {
 class PageContents extends ConsumerWidget {
   const PageContents({
     super.key,
-    required this.viewModel
   });
-
-  final BmiViewModel viewModel;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
