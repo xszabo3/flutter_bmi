@@ -89,33 +89,35 @@ class PageContents extends ConsumerWidget {
           padding: EdgeInsets.all(8.0),
           child: CalculateButton(),
         ),
-        //Result    
-        FutureBuilder(
-          future: viewModel.bmi, 
-          builder: (context, snapshot) {
-            if(snapshot.connectionState == ConnectionState.waiting){
-              return const CircularProgressIndicator();
-            }
-            if(snapshot.hasError){
+        //Result   
+        SizedBox(height: 50, // TODO debug the indicator restarts remove sizedbox after
+          child: FutureBuilder(
+            future: ref.watch(viewModelProvider.select((value) => value.bmi)), 
+            builder: (context, snapshot) {
+              if(snapshot.connectionState == ConnectionState.waiting){
+                return const CircularProgressIndicator();
+              }
+              if(snapshot.hasError){
+                return Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    key: const Key('error'),
+                    snapshot.error.toString()),
+                );
+              }
+              if(snapshot.data == null){
+                return Container();
+              }
               return Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Text(
-                  key: const Key('error'),
-                  snapshot.error.toString()),
+                  key: const Key('result'),
+                  style: TextStyle(backgroundColor: ColorBmi(ref.read(viewModelProvider).category(snapshot.data)).color),
+                  'BMI = ${snapshot.data}'),
               );
             }
-            if(snapshot.data == null){
-              return Container();
-            }
-            return Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                key: const Key('result'),
-                style: TextStyle(backgroundColor: ColorBmi(viewModel.category(snapshot.data)).color),
-                'BMI = ${snapshot.data}'),
-            );
-          }
-        ),
+          ),
+        )  
       ],
     );
   }

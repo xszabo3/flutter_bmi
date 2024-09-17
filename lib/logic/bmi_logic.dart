@@ -36,16 +36,6 @@ class BmiViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  /*void _clearBmi(){
-    _model = BmiModel(
-      unit, 
-      height, 
-      weight,
-      Future.value(null),
-    );
-    notifyListeners();
-  }*/
-
   void setUnit(int index){
     assert(index >= 0 && index < Unit.values.length);
     final newUnit = Unit.values[index];
