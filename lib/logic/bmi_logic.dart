@@ -3,11 +3,11 @@ import 'package:flutter_bmi/model/bmi_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 extension BmiModelExt on BmiModel {
-  BmiModel copyWith({Unit? unit, double? height, double? weight, Future<double?>? bmi}){
+  BmiModel copyWith({Unit? unit, double? Function()? height, double? Function()? weight, Future<double?>? bmi}) {
     return BmiModel(
       unit ?? this.unit, 
-      height ?? this.height, 
-      weight ?? this.weight,
+      height != null ? height() : this.height, 
+      weight != null ? weight() : this.weight,
       bmi ?? this.bmi
     );
   }
@@ -18,7 +18,6 @@ class BmiViewModel extends ChangeNotifier {
 
   final heightTextController = TextEditingController();
   final weightTextController = TextEditingController();
-  final resultController = TextEditingController();
   
   Future<double?> get bmi => _model.bmi;
   double? get height => _model.height;
@@ -37,7 +36,7 @@ class BmiViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void _clearBmi(){
+  /*void _clearBmi(){
     _model = BmiModel(
       unit, 
       height, 
@@ -45,7 +44,7 @@ class BmiViewModel extends ChangeNotifier {
       Future.value(null),
     );
     notifyListeners();
-  }
+  }*/
 
   void setUnit(int index){
     assert(index >= 0 && index < Unit.values.length);
@@ -57,11 +56,11 @@ class BmiViewModel extends ChangeNotifier {
   }
 
   set height(double? value){
-    _update = _model.copyWith(height: value);
+    _update = _model.copyWith(height: () => value);
   }
 
   set weight(double? value){
-    _update = _model.copyWith(weight: value);
+    _update = _model.copyWith(weight: () => value);
   }
 
   set _bmi(Future<double?> value){
@@ -83,18 +82,18 @@ class BmiViewModel extends ChangeNotifier {
   void init(){
     heightTextController.addListener((){
       height = double.tryParse(heightTextController.text);
-      _clearBmi();
+      _bmi = Future.value(null);
     });
     weightTextController.addListener((){
       weight = double.tryParse(weightTextController.text);
-      _clearBmi();
+      _bmi = Future.value(null);
     });
   }
 
   void calculate() async {
     assert(_model.valid);
     _bmi = _model.calculate().catchError((err) {
-      _clearBmi();
+      _bmi = Future.value(null);
       throw err;
     });
     notifyListeners();
@@ -102,5 +101,5 @@ class BmiViewModel extends ChangeNotifier {
 }
 
 final viewModelProvider = ChangeNotifierProvider<BmiViewModel>((ref) {
-  return BmiViewModel(model: BmiModel(Unit.metric, 1.78, 60, Future.value(null)));
+  return BmiViewModel(model: BmiModel(Unit.metric, null, null, Future.value(null)));
 });

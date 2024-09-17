@@ -59,7 +59,7 @@ class BmiPage extends ConsumerWidget {
   }
 }
 
-class PageContents extends StatelessWidget {
+class PageContents extends ConsumerWidget {
   const PageContents({
     super.key,
     required this.viewModel
@@ -68,14 +68,16 @@ class PageContents extends StatelessWidget {
   final BmiViewModel viewModel;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    //final provider = 
     return Column(
       children: [
-
         InputRow(label: "Weight:", textfieldWidth: constants.textfieldWidth, isHeight: false,
-          textController: viewModel.weightTextController , textKey: const Key('weight'),),
+          textController: ref.watch(viewModelProvider.select((value) => value.weightTextController)),
+          textKey: const Key('weight'),),
         InputRow(label: "Height:", textfieldWidth: constants.textfieldWidth, isHeight: true, 
-          textController: viewModel.heightTextController, textKey: const Key('height'),),
+          textController: ref.watch(viewModelProvider.select((value) => value.heightTextController)), 
+          textKey: const Key('height'),),
         const SizedBox(height: 20,),
         
         //Buttons
@@ -83,9 +85,9 @@ class PageContents extends StatelessWidget {
           padding: EdgeInsets.all(8.0),
           child: UnitToggle(),
         ),
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: CalculateButton(viewModel: viewModel,),
+        const Padding(
+          padding: EdgeInsets.all(8.0),
+          child: CalculateButton(),
         ),
         //Result    
         FutureBuilder(
@@ -119,19 +121,16 @@ class PageContents extends StatelessWidget {
   }
 }
 
-class CalculateButton extends StatelessWidget {
+class CalculateButton extends ConsumerWidget {
   const CalculateButton({
     super.key,
-    required this.viewModel
   });
 
-  final BmiViewModel viewModel;
-
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return ElevatedButton(
         key: const Key('calculate_button'),
-        onPressed: viewModel.buttonStateHandler,
+        onPressed: ref.watch(viewModelProvider).buttonStateHandler,
         child: const Text('Calculate')
     );
   }
@@ -140,10 +139,7 @@ class CalculateButton extends StatelessWidget {
 class UnitToggle extends ConsumerWidget {
   const UnitToggle({
     super.key,
-   //required this.viewModel
   });
-
-  //final BmiViewModel viewModel;
   
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -226,7 +222,7 @@ class UnitLabel extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final unit = ref.watch(viewModelProvider).unit;
+    final unit = ref.watch(viewModelProvider.select((value) => value.unit));
     return Text( isHeight ? unit.heightUnit : unit.weightUnit);
   }
 }
