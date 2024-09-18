@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bmi/model/bmi_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-//import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-//part 'bmi_logic.g.dart';
+part 'bmi_logic.g.dart';
 
 extension BmiModelExt on BmiModel {
   BmiModel copyWith({Unit? unit, (double?,)? height, (double?,)? weight, (Future<double>?,)? bmi}) {
@@ -16,18 +16,24 @@ extension BmiModelExt on BmiModel {
   }
 }
 
-class BmiViewModel extends ChangeNotifier {
-  BmiModel _model;
+@riverpod
+class BmiViewModel extends _$BmiViewModel {
+  //BmiModel _model;
+
+  @override
+  BmiModel build() {
+    return const BmiModel(Unit.metric, null, null, null);
+  }
 
   final heightTextController = TextEditingController();
   final weightTextController = TextEditingController();
   
-  Future<double>? get bmi => _model.bmi;
-  double? get height => _model.height;
-  double? get weight => _model.weight;
-  Unit get unit => _model.unit;
-  BmiCategory Function(double? input) get category => _model.category;
-  bool get valid => _model.valid;
+  Future<double>? get bmi => state.bmi;
+  double? get height => state.height;
+  double? get weight => state.weight;
+  Unit get unit => state.unit;
+  BmiCategory Function(double? input) get category => state.category;
+  bool get valid => state.valid;
 
   String converter(double? state, double conversionFactor){
       return state != null 
@@ -36,49 +42,45 @@ class BmiViewModel extends ChangeNotifier {
   }
 
   set _update(BmiModel model){
-    _model = model;
-    notifyListeners();
+    state = model;
   }
 
   void setUnit(int index){
     assert(index >= 0 && index < Unit.values.length);
     final newUnit = Unit.values[index];
-    _update = _model.copyWith(unit: newUnit);
+    _update = state.copyWith(unit: newUnit);
     
     heightTextController.text = converter(height, newUnit.heightconverter);
     weightTextController.text = converter(weight, newUnit.weightconverter);
   }
 
   void update({Unit? unit, (double?,)? height, (double?,)? weight, (Future<double>?,)? bmi}){
-    _model = _model.copyWith(
+    state = state.copyWith(
       unit: null,
       height: height,
       weight: weight,
       bmi: bmi,
     );
-    notifyListeners();
   }
 
   set height(double? value){
-    _update = _model.copyWith(height: (value,));
+    _update = state.copyWith(height: (value,));
   }
 
   set weight(double? value){
-    _update = _model.copyWith(weight: (value,));
+    _update = state.copyWith(weight: (value,));
   }
 
   set _bmi(Future<double>? value){
-    _update = _model.copyWith(bmi: (value,));
+    _update = state.copyWith(bmi: (value,));
   }
 
   Function()? get buttonStateHandler => 
-    _model.valid
+    state.valid
       ? calculate
       : null;
   
-  BmiViewModel({
-    required model
-  }) : _model = model {
+  BmiViewModel() {
     init();
   }
 
@@ -100,15 +102,14 @@ class BmiViewModel extends ChangeNotifier {
   }
 
   void calculate() async {
-    assert(_model.valid);
-    _bmi = _model.calculate();
-    notifyListeners();
+    assert(state.valid);
+    _bmi = state.calculate();
   }
 }
 
-final viewModelProvider = ChangeNotifierProvider<BmiViewModel>((ref) {
-  return BmiViewModel(model: BmiModel(Unit.metric, null, null, null));
-});
+/*final viewModelProvider = NotifierProvider<_$BmiViewModel, BmiModel>(() {
+  return BmiViewModel();
+});*/
 
 /*@riverpod
 Future<double> bmi(BmiRef ref) { // TODO use later

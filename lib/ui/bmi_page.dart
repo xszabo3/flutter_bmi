@@ -59,16 +59,16 @@ class PageContents extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     void enterPressHandler() {
-      if(ref.watch(viewModelProvider).valid) ref.watch(viewModelProvider.notifier).calculate();
+      if(ref.watch(bmiViewModelProvider).valid) ref.watch(bmiViewModelProvider.notifier).calculate();
     }
     return Column(
       children: [
         InputRow(label: "Weight:", textfieldWidth: constants.textfieldWidth, isHeight: false,
-          textController: ref.watch(viewModelProvider.select((value) => value.weightTextController)),
+          textController: ref.watch(bmiViewModelProvider.notifier).weightTextController,
           textKey: const Key('weight'), enterPressHandler: enterPressHandler,
         ),
         InputRow(label: "Height:", textfieldWidth: constants.textfieldWidth, isHeight: true, 
-          textController: ref.watch(viewModelProvider.select((value) => value.heightTextController)), 
+          textController: ref.watch(bmiViewModelProvider.notifier).heightTextController, 
           textKey: const Key('height'), enterPressHandler: enterPressHandler,
         ),
         const SizedBox(height: 20,),
@@ -78,13 +78,13 @@ class PageContents extends ConsumerWidget {
           padding: EdgeInsets.all(8.0),
           child: UnitToggle(),
         ),
-        const Padding(
-          padding: EdgeInsets.all(8.0),
-          child: CalculateButton(),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: CalculateButton(onPressHandler: ref.read(bmiViewModelProvider.notifier).buttonStateHandler),
         ),
         //Result   
         FutureBuilder(
-          future: ref.watch(viewModelProvider.select((value) => value.bmi)) ?? Future.error(AssertionError('No data')),
+          future: ref.watch(bmiViewModelProvider.select((value) => value.bmi)) ?? Future.error(AssertionError('No data')),
           initialData: null,
           builder: (context, snapshot) {
             if(snapshot.hasError && snapshot.error.toString() == 'Assertion failed: "No data"'){
@@ -108,7 +108,7 @@ class PageContents extends ConsumerWidget {
               padding: const EdgeInsets.all(8.0),
               child: Text(
                 key: const Key('result'),
-                style: TextStyle(backgroundColor: ColorBmi(ref.read(viewModelProvider).category(snapshot.data as double?)).color),
+                style: TextStyle(backgroundColor: ColorBmi(ref.read(bmiViewModelProvider).category(snapshot.data as double?)).color),
                 'BMI = ${snapshot.data}'),
             );
           }
@@ -121,13 +121,15 @@ class PageContents extends ConsumerWidget {
 class CalculateButton extends ConsumerWidget {
   const CalculateButton({
     super.key,
-  });
+    required onPressHandler,
+  }) : pressHandler = onPressHandler;
+  final void Function()? pressHandler;// = onP;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return ElevatedButton(
         key: const Key('calculate_button'),
-        onPressed: ref.watch(viewModelProvider.select((value) => value.buttonStateHandler)),
+        onPressed: pressHandler,//.select((value) => value.buttonStateHandler)),
         child: const Text('Calculate')
     );
   }
@@ -143,13 +145,13 @@ class UnitToggle extends ConsumerWidget {
     final Color primary = Theme.of(context).colorScheme.primary;
     
     return ToggleButtons(
-      isSelected: Unit.values.map((e) => e == ref.watch(viewModelProvider.select((value) => value.unit))).toList(),
+      isSelected: Unit.values.map((e) => e == ref.watch(bmiViewModelProvider.select((value) => value.unit))).toList(),
       selectedColor: Colors.white,
       color: primary,
       fillColor: primary,
       renderBorder: true,
       borderRadius: BorderRadius.circular(10),
-      onPressed: ref.read(viewModelProvider).setUnit,
+      onPressed: ref.read(bmiViewModelProvider.notifier.select((v) => v.setUnit)),
       children: const [
         Padding(
           padding: EdgeInsets.all(8.0),
@@ -222,7 +224,7 @@ class UnitLabel extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final unit = ref.watch(viewModelProvider.select((value) => value.unit));
+    final unit = ref.watch(bmiViewModelProvider.select((value) => value.unit));
     return Text( isHeight ? unit.heightUnit : unit.weightUnit);
   }
 }
