@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bmi/model/bmi_model.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'bmi_logic.g.dart';
@@ -33,7 +32,6 @@ class BmiViewModel extends _$BmiViewModel {
   double? get weight => state.weight;
   Unit get unit => state.unit;
   BmiCategory Function(double? input) get category => state.category;
-  bool get valid => state.valid;
 
   String converter(double? state, double conversionFactor){
       return state != null 
@@ -74,11 +72,6 @@ class BmiViewModel extends _$BmiViewModel {
   set _bmi(Future<double>? value){
     _update = state.copyWith(bmi: (value,));
   }
-
-  Function()? get buttonStateHandler => 
-    state.valid
-      ? calculate
-      : null;
   
   BmiViewModel() {
     init();

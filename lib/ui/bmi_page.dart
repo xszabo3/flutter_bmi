@@ -58,9 +58,14 @@ class PageContents extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    Future<double> Function()? pressHandler = ref.watch(bmiViewModelProvider).valid? ref.watch(bmiViewModelProvider).calculate : null;
     void enterPressHandler() {
-      if(ref.watch(bmiViewModelProvider).valid) ref.watch(bmiViewModelProvider.notifier).calculate();
+      if(pressHandler != null) pressHandler;
+      //if(ref.read(bmiViewModelProvider).valid) ref.read(bmiViewModelProvider.notifier).calculate();
     }
+    void Function(int) setUnit = ref.read(bmiViewModelProvider.notifier.select((v) => v.setUnit));
+    currentUnit(Unit unit) => unit == ref.watch(bmiViewModelProvider.select((v) => v.unit));
+
     return Column(
       children: [
         InputRow(label: "Weight:", textfieldWidth: constants.textfieldWidth, isHeight: false,
@@ -74,13 +79,13 @@ class PageContents extends ConsumerWidget {
         const SizedBox(height: 20,),
         
         //Buttons
-        const Padding(
-          padding: EdgeInsets.all(8.0),
-          child: UnitToggle(),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: UnitToggle(currentUnit: currentUnit, setUnit: setUnit,),
         ),
         Padding(
           padding: const EdgeInsets.all(8.0),
-          child: CalculateButton(onPressHandler: ref.read(bmiViewModelProvider.notifier).buttonStateHandler),
+          child: CalculateButton(pressHandler: pressHandler,),
         ),
         //Result   
         FutureBuilder(
@@ -118,40 +123,45 @@ class PageContents extends ConsumerWidget {
   }
 }
 
-class CalculateButton extends ConsumerWidget {
+class CalculateButton extends StatelessWidget {
   const CalculateButton({
     super.key,
-    required onPressHandler,
-  }) : pressHandler = onPressHandler;
-  final void Function()? pressHandler;// = onP;
+    required this.pressHandler,
+  });
+
+  final Future<double> Function()? pressHandler;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return ElevatedButton(
         key: const Key('calculate_button'),
-        onPressed: pressHandler,//.select((value) => value.buttonStateHandler)),
+        onPressed: pressHandler,
         child: const Text('Calculate')
     );
   }
 }
 
-class UnitToggle extends ConsumerWidget {
+class UnitToggle extends StatelessWidget {
   const UnitToggle({
     super.key,
+    required this.currentUnit,
+    required this.setUnit,
   });
-  
+
+  final bool Function(Unit) currentUnit;
+  final void Function(int) setUnit;
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final Color primary = Theme.of(context).colorScheme.primary;
-    
     return ToggleButtons(
-      isSelected: Unit.values.map((e) => e == ref.watch(bmiViewModelProvider.select((value) => value.unit))).toList(),
+      isSelected: Unit.values.map(currentUnit).toList(),
       selectedColor: Colors.white,
       color: primary,
       fillColor: primary,
       renderBorder: true,
       borderRadius: BorderRadius.circular(10),
-      onPressed: ref.read(bmiViewModelProvider.notifier.select((v) => v.setUnit)),
+      onPressed: setUnit,
       children: const [
         Padding(
           padding: EdgeInsets.all(8.0),
