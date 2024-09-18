@@ -58,15 +58,19 @@ class PageContents extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    //final provider = 
+    void enterPressHandler() {
+      if(ref.watch(viewModelProvider).valid) ref.watch(viewModelProvider.notifier).calculate();
+    }
     return Column(
       children: [
         InputRow(label: "Weight:", textfieldWidth: constants.textfieldWidth, isHeight: false,
           textController: ref.watch(viewModelProvider.select((value) => value.weightTextController)),
-          textKey: const Key('weight'),),
+          textKey: const Key('weight'), enterPressHandler: enterPressHandler,
+        ),
         InputRow(label: "Height:", textfieldWidth: constants.textfieldWidth, isHeight: true, 
           textController: ref.watch(viewModelProvider.select((value) => value.heightTextController)), 
-          textKey: const Key('height'),),
+          textKey: const Key('height'), enterPressHandler: enterPressHandler,
+        ),
         const SizedBox(height: 20,),
         
         //Buttons
@@ -171,6 +175,7 @@ class InputRow extends StatelessWidget {
     required this.isHeight,
     required this.textController,
     required this.textKey,
+    required this.enterPressHandler,
   });
 
   final String label;
@@ -178,6 +183,7 @@ class InputRow extends StatelessWidget {
   final double textfieldWidth;
   final TextEditingController textController;
   final Key textKey;
+  final void Function() enterPressHandler;
 
   @override
   Widget build(BuildContext context) {
@@ -189,36 +195,18 @@ class InputRow extends StatelessWidget {
           padding: const EdgeInsets.all(8.0),
           child: SizedBox(
             width: textfieldWidth,
-            child: InputField(textKey: textKey, textController: textController),
+            child: TextField(
+              key: textKey,
+              controller: textController,
+              onSubmitted: (s) => enterPressHandler(), 
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              inputFormatters: const [
+                TextInputFormatter.withFunction(doubleInputChecker),
+              ],
+            ),
           ),
         ),
         UnitLabel(isHeight: isHeight),
-      ],
-    );
-  }
-}
-
-class InputField extends ConsumerWidget {
-  const InputField({
-    super.key,
-    required this.textKey,
-    required this.textController,
-  });
-
-  final Key textKey;
-  final TextEditingController textController;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return TextField(
-      key: textKey,
-      controller: textController,
-      onSubmitted: (t) {
-        if(ref.read(viewModelProvider).valid) ref.read(viewModelProvider.notifier).calculate();
-      },
-      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      inputFormatters: const [
-        TextInputFormatter.withFunction(doubleInputChecker),
       ],
     );
   }
