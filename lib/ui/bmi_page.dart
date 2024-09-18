@@ -34,14 +34,14 @@ TextEditingValue doubleInputChecker(TextEditingValue old, TextEditingValue next)
     : old;
 }
 
-class BmiPage extends ConsumerWidget {
+class BmiPage extends StatelessWidget {
   const BmiPage({
     super.key,
   });
 
 
   @override
-  Widget build(BuildContext context, WidgetRef  ref) {
+  Widget build(BuildContext context) {
     return const Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -58,10 +58,9 @@ class PageContents extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    Future<double> Function()? pressHandler = ref.watch(bmiViewModelProvider).valid? ref.watch(bmiViewModelProvider).calculate : null;
-    void enterPressHandler() {
-      if(pressHandler != null) pressHandler;
-      //if(ref.read(bmiViewModelProvider).valid) ref.read(bmiViewModelProvider.notifier).calculate();
+    void Function()? pressHandler = ref.watch(bmiViewModelProvider).valid ? ref.read(bmiViewModelProvider.notifier.select((v) => v.calculate)) : null;
+    enterPressHandler() {
+      if(pressHandler != null) pressHandler();
     }
     void Function(int) setUnit = ref.read(bmiViewModelProvider.notifier.select((v) => v.setUnit));
     currentUnit(Unit unit) => unit == ref.watch(bmiViewModelProvider.select((v) => v.unit));
@@ -129,7 +128,7 @@ class CalculateButton extends StatelessWidget {
     required this.pressHandler,
   });
 
-  final Future<double> Function()? pressHandler;
+  final void Function()? pressHandler;
 
   @override
   Widget build(BuildContext context) {
