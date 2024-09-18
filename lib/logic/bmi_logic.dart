@@ -65,17 +65,24 @@ class BmiViewModel extends ChangeNotifier {
   BmiViewModel({
     required model
   }) : _model = model {
-
     init();
   }
 
   void init(){
     heightTextController.addListener((){
-      height = double.tryParse(heightTextController.text);
+      var height = double.tryParse(heightTextController.text);
+      if(height == this.height){
+        return;   
+      }
+      this.height = height;
       _bmi = Future.value(null);
     });
     weightTextController.addListener((){
-      weight = double.tryParse(weightTextController.text);
+      var weight = double.tryParse(weightTextController.text);
+      if(weight == this.weight){
+        return;   
+      }
+      this.weight = weight;
       _bmi = Future.value(null);
     });
   }

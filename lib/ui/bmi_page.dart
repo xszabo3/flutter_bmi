@@ -121,7 +121,7 @@ class CalculateButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return ElevatedButton(
         key: const Key('calculate_button'),
-        onPressed: ref.watch(viewModelProvider).buttonStateHandler,
+        onPressed: ref.watch(viewModelProvider.select((value) => value.buttonStateHandler)),
         child: const Text('Calculate')
     );
   }
@@ -187,17 +187,34 @@ class InputRow extends StatelessWidget {
           padding: const EdgeInsets.all(8.0),
           child: SizedBox(
             width: textfieldWidth,
-            child: TextField(
-              key: textKey,
-              controller: textController,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              inputFormatters: const [
-                TextInputFormatter.withFunction(doubleInputChecker),
-              ],
-            ),
+            child: InputField(textKey: textKey, textController: textController),
           ),
         ),
         UnitLabel(isHeight: isHeight),
+      ],
+    );
+  }
+}
+
+class InputField extends ConsumerWidget {
+  const InputField({
+    super.key,
+    required this.textKey,
+    required this.textController,
+  });
+
+  final Key textKey;
+  final TextEditingController textController;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return TextField(
+      key: textKey,
+      controller: textController,
+      onSubmitted: (text) => ref.watch(viewModelProvider.select((value) => value.buttonStateHandler)), // TODO doesnt work
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      inputFormatters: const [
+        TextInputFormatter.withFunction(doubleInputChecker),
       ],
     );
   }
