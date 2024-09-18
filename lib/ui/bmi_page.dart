@@ -79,10 +79,15 @@ class PageContents extends ConsumerWidget {
           child: CalculateButton(),
         ),
         //Result   
-        SizedBox(height: 50, // TODO debug the indicator restarts remove sizedbox after
+        SizedBox(height: 50,
           child: FutureBuilder(
-            future: ref.watch(viewModelProvider.select((value) => value.bmi)), 
+            future: ref.watch(viewModelProvider.select((value) => value.bmi)), // TODO value doesnt change back to null
+            initialData: null,
             builder: (context, snapshot) {
+              if(snapshot.hasError){// && snapshot.error.toString() == 'No data'){
+                print(snapshot.error.toString());
+                return const CircularProgressIndicator();
+              }
               if(snapshot.connectionState == ConnectionState.waiting){
                 return const CircularProgressIndicator();
               }
@@ -101,7 +106,7 @@ class PageContents extends ConsumerWidget {
                 padding: const EdgeInsets.all(8.0),
                 child: Text(
                   key: const Key('result'),
-                  style: TextStyle(backgroundColor: ColorBmi(ref.read(viewModelProvider).category(snapshot.data)).color),
+                  style: TextStyle(backgroundColor: ColorBmi(ref.read(viewModelProvider).category(snapshot.data as double?)).color),
                   'BMI = ${snapshot.data}'),
               );
             }

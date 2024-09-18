@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bmi/model/bmi_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+//import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+//part 'bmi_logic.g.dart';
 
 extension BmiModelExt on BmiModel {
-  BmiModel copyWith({Unit? unit, double? Function()? height, double? Function()? weight, Future<double?>? bmi}) {
+  BmiModel copyWith({Unit? unit, (double?,)? height, (double?,)? weight, (Future<double>?,)? bmi}) {
     return BmiModel(
       unit ?? this.unit, 
-      height != null ? height() : this.height, 
-      weight != null ? weight() : this.weight,
-      bmi ?? this.bmi
+      height != null ? height.$1 : this.height, 
+      weight != null ? weight.$1 : this.weight,
+      bmi != null ? bmi.$1 : this.bmi
     );
   }
 }
@@ -19,7 +22,7 @@ class BmiViewModel extends ChangeNotifier {
   final heightTextController = TextEditingController();
   final weightTextController = TextEditingController();
   
-  Future<double?> get bmi => _model.bmi;
+  Future<double>? get bmi => _model.bmi;
   double? get height => _model.height;
   double? get weight => _model.weight;
   Unit get unit => _model.unit;
@@ -45,16 +48,26 @@ class BmiViewModel extends ChangeNotifier {
     weightTextController.text = converter(weight, newUnit.weightconverter);
   }
 
+  void update({Unit? unit, (double?,)? height, (double?,)? weight, (Future<double>?,)? bmi}){
+    _model = _model.copyWith(
+      unit: null,
+      height: height,
+      weight: weight,
+      bmi: bmi,
+    );
+    notifyListeners();
+  }
+
   set height(double? value){
-    _update = _model.copyWith(height: () => value);
+    _update = _model.copyWith(height: (value,));
   }
 
   set weight(double? value){
-    _update = _model.copyWith(weight: () => value);
+    _update = _model.copyWith(weight: (value,));
   }
 
-  set _bmi(Future<double?> value){
-    _update = _model.copyWith(bmi: value);
+  set _bmi(Future<double>? value){
+    _update = _model.copyWith(bmi: (value,));
   }
 
   Function()? get buttonStateHandler => 
@@ -74,29 +87,29 @@ class BmiViewModel extends ChangeNotifier {
       if(height == this.height){
         return;   
       }
-      this.height = height;
-      _bmi = Future.value(null);
+      update(height: (height,), weight: null, bmi: (null,));
     });
     weightTextController.addListener((){
       var weight = double.tryParse(weightTextController.text);
       if(weight == this.weight){
         return;   
       }
-      this.weight = weight;
-      _bmi = Future.value(null);
+      update(weight: (weight,), bmi: (null,));
     });
   }
 
   void calculate() async {
     assert(_model.valid);
-    _bmi = _model.calculate().catchError((err) {
-      _bmi = Future.value(null);
-      throw err;
-    });
+    _bmi = _model.calculate();
     notifyListeners();
   }
 }
 
 final viewModelProvider = ChangeNotifierProvider<BmiViewModel>((ref) {
-  return BmiViewModel(model: BmiModel(Unit.metric, null, null, Future.value(null)));
+  return BmiViewModel(model: BmiModel(Unit.metric, null, null, null));
 });
+
+/*@riverpod
+Future<double> bmi(BmiRef ref) { // TODO use later
+  return Future.value(1);
+}*/

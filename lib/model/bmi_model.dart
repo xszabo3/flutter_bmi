@@ -28,7 +28,7 @@ class BmiModel{
   final Unit unit;
   final double? height;
   final double? weight;
-  final Future<double?> bmi;
+  final Future<double>? bmi;
 
   BmiModel(this.unit, this.height, this.weight, this.bmi);
 
@@ -45,9 +45,7 @@ class BmiModel{
     assert(valid);
     return await Future.delayed(const Duration(seconds: 1), 
       () { 
-        if(weight == 1){
-          throw AssertionError("That's a lie!");
-        } 
+        if(weight == 1) return Future.error(AssertionError("That's a lie!"));
         return (weight! / (height! * height!)) * unit.conversionFactor;
       });
   }
