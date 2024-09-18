@@ -64,16 +64,17 @@ class PageContents extends ConsumerWidget {
     }
     void Function(int) setUnit = ref.read(bmiViewModelProvider.notifier.select((v) => v.setUnit));
     currentUnit(Unit unit) => unit == ref.watch(bmiViewModelProvider.select((v) => v.unit));
+    final unit = ref.watch(bmiViewModelProvider.select((value) => value.unit));
 
     return Column(
       children: [
         InputRow(label: "Weight:", textfieldWidth: constants.textfieldWidth, isHeight: false,
           textController: ref.watch(bmiViewModelProvider.notifier).weightTextController,
-          textKey: const Key('weight'), enterPressHandler: enterPressHandler,
+          textKey: const Key('weight'), enterPressHandler: enterPressHandler, selectedUnit: unit,
         ),
         InputRow(label: "Height:", textfieldWidth: constants.textfieldWidth, isHeight: true, 
           textController: ref.watch(bmiViewModelProvider.notifier).heightTextController, 
-          textKey: const Key('height'), enterPressHandler: enterPressHandler,
+          textKey: const Key('height'), enterPressHandler: enterPressHandler, selectedUnit: unit,
         ),
         const SizedBox(height: 20,),
         
@@ -187,6 +188,7 @@ class InputRow extends StatelessWidget {
     required this.textController,
     required this.textKey,
     required this.enterPressHandler,
+    required this.selectedUnit,
   });
 
   final String label;
@@ -195,6 +197,7 @@ class InputRow extends StatelessWidget {
   final TextEditingController textController;
   final Key textKey;
   final void Function() enterPressHandler;
+  final Unit selectedUnit;
 
   @override
   Widget build(BuildContext context) {
@@ -217,23 +220,24 @@ class InputRow extends StatelessWidget {
             ),
           ),
         ),
-        UnitLabel(isHeight: isHeight),
+        UnitLabel(isHeight: isHeight, selectedUnit: selectedUnit,),
       ],
     );
   }
 }
 
-class UnitLabel extends ConsumerWidget {
+class UnitLabel extends StatelessWidget {
   const UnitLabel({
     super.key,
     required this.isHeight,
+    required this.selectedUnit,
   });
 
   final bool isHeight;
+  final Unit selectedUnit;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final unit = ref.watch(bmiViewModelProvider.select((value) => value.unit));
-    return Text( isHeight ? unit.heightUnit : unit.weightUnit);
+  Widget build(BuildContext context) {
+    return Text( isHeight ? selectedUnit.heightUnit : selectedUnit.weightUnit);
   }
 }

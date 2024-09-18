@@ -100,10 +100,6 @@ class BmiViewModel extends _$BmiViewModel {
   }
 }
 
-/*final viewModelProvider = NotifierProvider<_$BmiViewModel, BmiModel>(() {
-  return BmiViewModel();
-});*/
-
 /*@riverpod
 Future<double> bmi(BmiRef ref) { // TODO use later
   return Future.value(1);
