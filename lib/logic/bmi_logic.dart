@@ -27,6 +27,7 @@ class BmiViewModel extends ChangeNotifier {
   double? get weight => _model.weight;
   Unit get unit => _model.unit;
   BmiCategory Function(double? input) get category => _model.category;
+  bool get valid => _model.valid;
 
   String converter(double? state, double conversionFactor){
       return state != null 

@@ -79,39 +79,36 @@ class PageContents extends ConsumerWidget {
           child: CalculateButton(),
         ),
         //Result   
-        SizedBox(height: 50,
-          child: FutureBuilder(
-            future: ref.watch(viewModelProvider.select((value) => value.bmi)), // TODO value doesnt change back to null
-            initialData: null,
-            builder: (context, snapshot) {
-              if(snapshot.hasError){// && snapshot.error.toString() == 'No data'){
-                print(snapshot.error.toString());
-                return const CircularProgressIndicator();
-              }
-              if(snapshot.connectionState == ConnectionState.waiting){
-                return const CircularProgressIndicator();
-              }
-              if(snapshot.hasError){
-                return Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    key: const Key('error'),
-                    snapshot.error.toString()),
-                );
-              }
-              if(snapshot.data == null){
-                return Container();
-              }
+        FutureBuilder(
+          future: ref.watch(viewModelProvider.select((value) => value.bmi)) ?? Future.error(AssertionError('No data')),
+          initialData: null,
+          builder: (context, snapshot) {
+            if(snapshot.hasError && snapshot.error.toString() == 'Assertion failed: "No data"'){
+              return Container();
+            }
+            if(snapshot.connectionState == ConnectionState.waiting){
+              return const CircularProgressIndicator();
+            }
+            if(snapshot.hasError){
               return Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Text(
-                  key: const Key('result'),
-                  style: TextStyle(backgroundColor: ColorBmi(ref.read(viewModelProvider).category(snapshot.data as double?)).color),
-                  'BMI = ${snapshot.data}'),
+                  key: const Key('error'),
+                  snapshot.error.toString()),
               );
             }
-          ),
-        )  
+            if(snapshot.data == null){
+              return Container();
+            }
+            return Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                key: const Key('result'),
+                style: TextStyle(backgroundColor: ColorBmi(ref.read(viewModelProvider).category(snapshot.data as double?)).color),
+                'BMI = ${snapshot.data}'),
+            );
+          }
+        ), 
       ],
     );
   }
@@ -216,7 +213,9 @@ class InputField extends ConsumerWidget {
     return TextField(
       key: textKey,
       controller: textController,
-      onSubmitted: (text) => ref.watch(viewModelProvider.select((value) => value.buttonStateHandler)), // TODO doesnt work
+      onSubmitted: (t) {
+        if(ref.read(viewModelProvider).valid) ref.read(viewModelProvider.notifier).calculate();
+      },
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
       inputFormatters: const [
         TextInputFormatter.withFunction(doubleInputChecker),
