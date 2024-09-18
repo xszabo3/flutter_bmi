@@ -5,7 +5,6 @@ import 'package:flutter_bmi/model/bmi_model.dart';
 
 import 'package:flutter_bmi/utils/constants.dart' as constants;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:provider/provider.dart' as prov;
 
 extension Capitalize on String{
   String capitalize() {
@@ -43,18 +42,11 @@ class BmiPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef  ref) {
-    return prov.MultiProvider( // TODO remove tomorrow
-      providers: [
-        prov.ChangeNotifierProvider.value(value: ref.watch(viewModelProvider.notifier))
+    return const Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        PageContents()
       ],
-      child: prov.Consumer<BmiViewModel>(builder: (_, model, child) {
-        return const Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            PageContents()
-          ],
-        );
-      },)    
     );
   }
 }
