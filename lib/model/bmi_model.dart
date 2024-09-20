@@ -18,6 +18,11 @@ enum Unit{
   final double weightconverter;
   final double heightconverter;
 }
+enum BmiState{
+  hidden, value1, value2
+}
+
+
 
 enum BmiCategory{
   underweight,
@@ -31,7 +36,7 @@ class BmiModel{
   final Unit unit;
   final double? height;
   final double? weight;
-  final bool bmiState;
+  final BmiState bmiState;
 
   const BmiModel(this.unit, this.height, this.weight, this.bmiState);
 
@@ -51,5 +56,9 @@ class BmiModel{
         if(weight == 1) return Future.error(AssertionError("That's a lie!"));
         return ((weight! / (height! * height!)) * unit.conversionFactor,);
       });
+  }
+
+  BmiState refreshValue(){
+    return bmiState == BmiState.value1 ? BmiState.value2 : BmiState.value1;
   }
 }

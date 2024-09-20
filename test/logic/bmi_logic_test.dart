@@ -15,10 +15,8 @@ void main() {
         viewModel.setUnit(Unit.metric.index);
         viewModel.heightTextController.text = '1.78';
         viewModel.weightTextController.text = '60';
-      
-        viewModel.calculate();
 
-        // expect(viewModel.bmi, '18.94'); TODO
+        //expect(bmiProvider., '18.94'); TODO
       });
 
       test('Test imperial calculation', () async {
@@ -26,7 +24,7 @@ void main() {
         viewModel.heightTextController.text = '70.07';
         viewModel.weightTextController.text = '132.27';
       
-        viewModel.calculate();
+        //viewModel.calculate();
 
         //expect(viewModel.bmi, '18.94'); TODO
       });
@@ -34,26 +32,26 @@ void main() {
 
     group('Category tests', () {
       test('Category ', () async {
-        viewModel.calculate();
+        //viewModel.calculate();
 
         expect(viewModel.category, BmiCategory.normal);
 
         viewModel.heightTextController.text = '1';
         viewModel.weightTextController.text = '10';
         
-        viewModel.calculate();
+        //viewModel.calculate();
 
         expect(viewModel.category, BmiCategory.underweight);
       
         viewModel.weightTextController.text = '25';
         
-        viewModel.calculate();
+        //viewModel.calculate();
 
         expect(viewModel.category, BmiCategory.overweight);
 
         viewModel.weightTextController.text = '250';
         
-        viewModel.calculate();
+        //viewModel.calculate();
 
         expect(viewModel.category, BmiCategory.obese);
       });

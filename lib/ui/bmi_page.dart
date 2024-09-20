@@ -59,8 +59,8 @@ class PageContents extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     void Function()? pressHandler = ref.watch(bmiViewModelProvider).valid ? () { 
-      ref.invalidate(bmiProvider);
-      ref.read(bmiViewModelProvider.notifier).update(bmiState: true);
+      final viewModel = ref.read(bmiViewModelProvider.notifier);
+      viewModel.update(bmiState: ref.read(bmiViewModelProvider).refreshValue());
     } : null;
     enterPressHandler() {
       if(pressHandler != null) pressHandler();
@@ -92,7 +92,8 @@ class PageContents extends ConsumerWidget {
           child: CalculateButton(pressHandler: pressHandler,),
         ),
         //Result
-        if(ref.watch(bmiViewModelProvider).bmiState) ...[
+        Text('${ref.watch(bmiViewModelProvider).bmiState}'),
+        if(ref.watch(bmiViewModelProvider).bmiState != BmiState.hidden)
           bmi.when(
             skipLoadingOnRefresh: false,
             data: (data) => Padding(
@@ -110,9 +111,7 @@ class PageContents extends ConsumerWidget {
             ), 
             loading: () => const CircularProgressIndicator()
           )
-        ] else ...[
-          Container()
-        ]
+        else Container()
       ],
     );
   }
