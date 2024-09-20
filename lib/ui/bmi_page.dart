@@ -65,7 +65,7 @@ class PageContents extends ConsumerWidget {
     void Function(int) setUnit = ref.read(bmiViewModelProvider.notifier.select((v) => v.setUnit));
     currentUnit(Unit unit) => unit == ref.watch(bmiViewModelProvider.select((v) => v.unit));
     final unit = ref.watch(bmiViewModelProvider.select((value) => value.unit));
-    var (bmi, bmiVisible) = ref.watch(bmiViewModelProvider.select((value) => value.bmiState));
+    var bmi = ref.watch(bmiProvider);
 
     return Column(
       children: [
@@ -89,30 +89,23 @@ class PageContents extends ConsumerWidget {
           child: CalculateButton(pressHandler: pressHandler,),
         ),
         //Result
-        if(bmiVisible) ...[
-          FutureBuilder(
-            future: bmi,
-            builder: (context, snapshot) {
-              if(snapshot.connectionState == ConnectionState.waiting){
-                return const CircularProgressIndicator();
-              }
-              if(snapshot.hasError){
-                return Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    key: const Key('error'),
-                    snapshot.error.toString()),
-                );
-              }
-              return Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(
-                  key: const Key('result'),
-                  style: TextStyle(backgroundColor: ColorBmi(ref.read(bmiViewModelProvider).category(snapshot.data)).color),
-                  'BMI = ${snapshot.data}'),
-              );
-            }
-          ), 
+        if(ref.watch(bmiViewModelProvider).bmiState) ...[
+          bmi.when(
+            data: (data) => Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                key: const Key('result'),
+                style: TextStyle(backgroundColor: ColorBmi(ref.read(bmiViewModelProvider).category(data.$1)).color),
+                'BMI = ${data.$1}'),
+            ), 
+            error: (error, _) => Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                key: const Key('error'),
+                error.toString()),
+            ), 
+            loading: () => const CircularProgressIndicator()
+          )
         ] else ...[
           Container()
         ]

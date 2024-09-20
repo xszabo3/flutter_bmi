@@ -5,7 +5,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'bmi_logic.g.dart';
 
 extension BmiModelExt on BmiModel {
-  BmiModel copyWith({Unit? unit, (double?,)? height, (double?,)? weight, (Future<double>?, bool visible)? bmiState}) {
+  BmiModel copyWith({Unit? unit, (double?,)? height, (double?,)? weight, bool? bmiState}) {
     return BmiModel(
       unit ?? this.unit, 
       height != null ? height.$1 : this.height, 
@@ -15,19 +15,17 @@ extension BmiModelExt on BmiModel {
   }
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 class BmiViewModel extends _$BmiViewModel {
-  //BmiModel _model;
 
   @override
   BmiModel build() {
-    return const BmiModel(Unit.metric, null, null, (null, false));
+    return const BmiModel(Unit.metric, null, null, false);
   }
 
   final heightTextController = TextEditingController();
   final weightTextController = TextEditingController();
   
-  (Future<double>?, bool) get bmiState => state.bmiState;
   double? get height => state.height;
   double? get weight => state.weight;
   Unit get unit => state.unit;
@@ -52,7 +50,7 @@ class BmiViewModel extends _$BmiViewModel {
     weightTextController.text = converter(weight, newUnit.weightconverter);
   }
 
-  void update({Unit? unit, (double?,)? height, (double?,)? weight, (Future<double>?, bool visible)? bmiState}){
+  void update({Unit? unit, (double?,)? height, (double?,)? weight, bool? bmiState}){
     state = state.copyWith(
       unit: unit,
       height: height,
@@ -69,7 +67,7 @@ class BmiViewModel extends _$BmiViewModel {
     _update = state.copyWith(weight: (value,));
   }
 
-  set _bmi((Future<double>, bool) value){
+  set _bmi(bool value){
     _update = state.copyWith(bmiState: value);
   }
   
@@ -83,20 +81,25 @@ class BmiViewModel extends _$BmiViewModel {
       if(height == this.height){
         return;   
       }
-      update(height: (height,), weight: null, bmiState: (null, false));
+      update(height: (height,), weight: null, bmiState: false);
     });
     weightTextController.addListener((){
       var weight = double.tryParse(weightTextController.text);
       if(weight == this.weight){
         return;   
       }
-      update(weight: (weight,), bmiState: (null, false));
+      update(weight: (weight,), bmiState: false);
     });
   }
 
   void calculate() async {
     assert(state.valid);
-    _bmi = (state.calculate(), true);
+    _bmi = true;
   }
-
 }
+
+final bmiProvider = FutureProvider((ref) async {
+  final uiState = ref.watch(bmiViewModelProvider);
+  if(uiState.valid) return uiState.calculate();
+  return (null,);
+});
