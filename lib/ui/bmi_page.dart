@@ -94,6 +94,7 @@ class PageContents extends ConsumerWidget {
         //Result
         if(ref.watch(bmiViewModelProvider).bmiState) ...[
           bmi.when(
+            skipLoadingOnRefresh: false,
             data: (data) => Padding(
               padding: const EdgeInsets.all(8.0),
               child: Text(
