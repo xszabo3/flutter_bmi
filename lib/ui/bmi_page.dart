@@ -60,7 +60,7 @@ class PageContents extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     void Function()? pressHandler = ref.watch(bmiViewModelProvider).valid ? () { 
       final viewModel = ref.read(bmiViewModelProvider.notifier);
-      viewModel.update(bmiState: BmiState.value);
+      viewModel.update(bmiState: ref.read(bmiViewModelProvider).refreshValue());
     } : null;
     enterPressHandler() {
       if(pressHandler != null) pressHandler();

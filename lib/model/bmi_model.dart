@@ -19,7 +19,7 @@ enum Unit{
   final double heightconverter;
 }
 enum BmiState{
-  hidden, value,
+  hidden, value, value2
 }
 
 
@@ -56,5 +56,9 @@ class BmiModel{
         if(weight == 1) return Future.error(AssertionError("That's a lie!"));
         return ((weight! / (height! * height!)) * unit.conversionFactor,);
       });
+  }
+
+  BmiState refreshValue(){
+    return bmiState == BmiState.value ? BmiState.value2 : BmiState.value;
   }
 }
