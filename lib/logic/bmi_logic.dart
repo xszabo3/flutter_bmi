@@ -66,10 +66,6 @@ class BmiViewModel extends _$BmiViewModel {
   set weight(double? value){
     _update = state.copyWith(weight: (value,));
   }
-
-  set _bmi(bool value){
-    _update = state.copyWith(bmiState: value);
-  }
   
   BmiViewModel() {
     init();
@@ -91,11 +87,6 @@ class BmiViewModel extends _$BmiViewModel {
       update(weight: (weight,), bmiState: false);
     });
   }
-
-  /*void calculate() async {
-    assert(state.valid);
-    _bmi = true;
-  }*/
 }
 
 final bmiProvider = FutureProvider((ref) async {
