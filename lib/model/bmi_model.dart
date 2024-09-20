@@ -46,7 +46,7 @@ class BmiModel{
 
   Future<(double,)> calculate() async {
     assert(valid);
-    return await Future.delayed(const Duration(seconds: 3), 
+    return Future.delayed(const Duration(seconds: 3), 
       () { 
         if(weight == 1) return Future.error(AssertionError("That's a lie!"));
         return ((weight! / (height! * height!)) * unit.conversionFactor,);

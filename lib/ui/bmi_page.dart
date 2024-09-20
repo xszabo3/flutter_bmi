@@ -58,7 +58,10 @@ class PageContents extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    void Function()? pressHandler = ref.watch(bmiViewModelProvider).valid ? ref.read(bmiViewModelProvider.notifier.select((v) => v.calculate)) : null;
+    void Function()? pressHandler = ref.watch(bmiViewModelProvider).valid ? () { 
+      ref.invalidate(bmiProvider);
+      ref.read(bmiViewModelProvider.notifier).update(bmiState: true);
+    } : null;
     enterPressHandler() {
       if(pressHandler != null) pressHandler();
     }

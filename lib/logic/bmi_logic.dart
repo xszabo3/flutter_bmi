@@ -92,14 +92,14 @@ class BmiViewModel extends _$BmiViewModel {
     });
   }
 
-  void calculate() async {
+  /*void calculate() async {
     assert(state.valid);
     _bmi = true;
-  }
+  }*/
 }
 
 final bmiProvider = FutureProvider((ref) async {
-  final uiState = ref.watch(bmiViewModelProvider);
+  final uiState = ref.read(bmiViewModelProvider);
   if(uiState.valid) return uiState.calculate();
   return (null,);
 });
