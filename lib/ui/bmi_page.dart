@@ -60,7 +60,7 @@ class PageContents extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     void Function()? pressHandler = ref.watch(bmiViewModelProvider).valid ? () { 
       final viewModel = ref.read(bmiViewModelProvider.notifier);
-      viewModel.update(bmiState: ref.read(bmiViewModelProvider).refreshValue());
+      viewModel.update(bmiState: BmiState.value);
     } : null;
     enterPressHandler() {
       if(pressHandler != null) pressHandler();
@@ -92,7 +92,6 @@ class PageContents extends ConsumerWidget {
           child: CalculateButton(pressHandler: pressHandler,),
         ),
         //Result
-        Text('${ref.watch(bmiViewModelProvider).bmiState}'),
         if(ref.watch(bmiViewModelProvider).bmiState != BmiState.hidden)
           bmi.when(
             skipLoadingOnRefresh: false,
