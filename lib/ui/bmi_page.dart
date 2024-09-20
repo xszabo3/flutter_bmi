@@ -65,6 +65,7 @@ class PageContents extends ConsumerWidget {
     void Function(int) setUnit = ref.read(bmiViewModelProvider.notifier.select((v) => v.setUnit));
     currentUnit(Unit unit) => unit == ref.watch(bmiViewModelProvider.select((v) => v.unit));
     final unit = ref.watch(bmiViewModelProvider.select((value) => value.unit));
+    var (bmi, bmiVisible) = ref.watch(bmiViewModelProvider.select((value) => value.bmiState));
 
     return Column(
       children: [
@@ -87,37 +88,34 @@ class PageContents extends ConsumerWidget {
           padding: const EdgeInsets.all(8.0),
           child: CalculateButton(pressHandler: pressHandler,),
         ),
-        //Result   
-        FutureBuilder(
-          future: ref.watch(bmiViewModelProvider.select((value) => value.bmi)) ?? Future.error(AssertionError('No data')),
-          initialData: null,
-          builder: (context, snapshot) {
-            if(snapshot.hasError && snapshot.error.toString() == 'Assertion failed: "No data"'){
-              return Container();
-            }
-            if(snapshot.connectionState == ConnectionState.waiting){
-              return const CircularProgressIndicator();
-            }
-            if(snapshot.hasError){
+        //Result
+        if(bmiVisible) ...[
+          FutureBuilder(
+            future: bmi,
+            builder: (context, snapshot) {
+              if(snapshot.connectionState == ConnectionState.waiting){
+                return const CircularProgressIndicator();
+              }
+              if(snapshot.hasError){
+                return Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    key: const Key('error'),
+                    snapshot.error.toString()),
+                );
+              }
               return Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Text(
-                  key: const Key('error'),
-                  snapshot.error.toString()),
+                  key: const Key('result'),
+                  style: TextStyle(backgroundColor: ColorBmi(ref.read(bmiViewModelProvider).category(snapshot.data)).color),
+                  'BMI = ${snapshot.data}'),
               );
             }
-            if(snapshot.data == null){
-              return Container();
-            }
-            return Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                key: const Key('result'),
-                style: TextStyle(backgroundColor: ColorBmi(ref.read(bmiViewModelProvider).category(snapshot.data as double?)).color),
-                'BMI = ${snapshot.data}'),
-            );
-          }
-        ), 
+          ), 
+        ] else ...[
+          Container()
+        ]
       ],
     );
   }

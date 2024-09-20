@@ -5,12 +5,12 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'bmi_logic.g.dart';
 
 extension BmiModelExt on BmiModel {
-  BmiModel copyWith({Unit? unit, (double?,)? height, (double?,)? weight, (Future<double>?,)? bmi}) {
+  BmiModel copyWith({Unit? unit, (double?,)? height, (double?,)? weight, (Future<double>?, bool visible)? bmiState}) {
     return BmiModel(
       unit ?? this.unit, 
       height != null ? height.$1 : this.height, 
       weight != null ? weight.$1 : this.weight,
-      bmi != null ? bmi.$1 : this.bmi
+      bmiState ?? this.bmiState,
     );
   }
 }
@@ -21,13 +21,13 @@ class BmiViewModel extends _$BmiViewModel {
 
   @override
   BmiModel build() {
-    return const BmiModel(Unit.metric, null, null, null);
+    return const BmiModel(Unit.metric, null, null, (null, false));
   }
 
   final heightTextController = TextEditingController();
   final weightTextController = TextEditingController();
   
-  Future<double>? get bmi => state.bmi;
+  (Future<double>?, bool) get bmiState => state.bmiState;
   double? get height => state.height;
   double? get weight => state.weight;
   Unit get unit => state.unit;
@@ -52,12 +52,12 @@ class BmiViewModel extends _$BmiViewModel {
     weightTextController.text = converter(weight, newUnit.weightconverter);
   }
 
-  void update({Unit? unit, (double?,)? height, (double?,)? weight, (Future<double>?,)? bmi}){
+  void update({Unit? unit, (double?,)? height, (double?,)? weight, (Future<double>?, bool visible)? bmiState}){
     state = state.copyWith(
-      unit: null,
+      unit: unit,
       height: height,
       weight: weight,
-      bmi: bmi,
+      bmiState: bmiState,
     );
   }
 
@@ -69,8 +69,8 @@ class BmiViewModel extends _$BmiViewModel {
     _update = state.copyWith(weight: (value,));
   }
 
-  set _bmi(Future<double>? value){
-    _update = state.copyWith(bmi: (value,));
+  set _bmi((Future<double>, bool) value){
+    _update = state.copyWith(bmiState: value);
   }
   
   BmiViewModel() {
@@ -83,24 +83,20 @@ class BmiViewModel extends _$BmiViewModel {
       if(height == this.height){
         return;   
       }
-      update(height: (height,), weight: null, bmi: (null,));
+      update(height: (height,), weight: null, bmiState: (null, false));
     });
     weightTextController.addListener((){
       var weight = double.tryParse(weightTextController.text);
       if(weight == this.weight){
         return;   
       }
-      update(weight: (weight,), bmi: (null,));
+      update(weight: (weight,), bmiState: (null, false));
     });
   }
 
   void calculate() async {
     assert(state.valid);
-    _bmi = state.calculate();
+    _bmi = (state.calculate(), true);
   }
-}
 
-/*@riverpod
-Future<double> bmi(BmiRef ref) { // TODO use later
-  return Future.value(1);
-}*/
+}

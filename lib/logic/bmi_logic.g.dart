@@ -6,7 +6,7 @@ part of 'bmi_logic.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$bmiViewModelHash() => r'8478628b3f0dfbf4391d4e510c2b18bde98514e3';
+String _$bmiViewModelHash() => r'25403da265c209f1f013368bf112d26773394dfc';
 
 /// See also [BmiViewModel].
 @ProviderFor(BmiViewModel)
