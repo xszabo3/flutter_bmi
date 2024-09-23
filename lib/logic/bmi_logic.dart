@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bmi/model/bmi_model.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-//part 'bmi_logic.g.dart';
-
 extension BmiModelExt on BmiModel {
   BmiModel copyWith({Unit? unit, (double?,)? height, (double?,)? weight, BmiResultState? bmiState}) {
     return BmiModel(
@@ -17,10 +15,11 @@ extension BmiModelExt on BmiModel {
   bool get valid => height != null && weight != null && height! > 0 && weight! > 0;
 }
 
-//@Riverpod(keepAlive: true)
 class BmiViewModel extends Notifier<BmiModel> {
 
-  BmiViewModel();
+  final BmiModel? initial;
+
+  BmiViewModel({this.initial});
 
   @override
   BmiModel build() {
@@ -32,7 +31,7 @@ class BmiViewModel extends Notifier<BmiModel> {
     heightTextController.addListener(updateHeight);
     weightTextController.addListener(updateWeight);
 
-    return const BmiModel(Unit.metric, null, null, BmiHiddenResult());
+    return initial != null ? initial! : const BmiModel(Unit.metric, null, null, BmiHiddenResult());
   }
 
   final heightTextController = TextEditingController();
