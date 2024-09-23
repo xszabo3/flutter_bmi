@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bmi/model/bmi_model.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-part 'bmi_logic.g.dart';
+//part 'bmi_logic.g.dart';
 
 extension BmiModelExt on BmiModel {
-  BmiModel copyWith({Unit? unit, (double?,)? height, (double?,)? weight, BmiState? bmiState}) {
+  BmiModel copyWith({Unit? unit, (double?,)? height, (double?,)? weight, BmiResultState? bmiState}) {
     return BmiModel(
       unit ?? this.unit, 
       height != null ? height.$1 : this.height, 
@@ -13,44 +13,55 @@ extension BmiModelExt on BmiModel {
       bmiState ?? this.bmiState,
     );
   }
+
+  bool get valid => height != null && weight != null && height! > 0 && weight! > 0;
 }
 
-@Riverpod(keepAlive: true)
-class BmiViewModel extends _$BmiViewModel {
+//@Riverpod(keepAlive: true)
+class BmiViewModel extends Notifier<BmiModel> {
+
+  BmiViewModel();
 
   @override
   BmiModel build() {
-    return const BmiModel(Unit.metric, null, null, BmiState.hidden);
+    ref.onDispose(() {
+        heightTextController.removeListener(updateHeight);
+        weightTextController.removeListener(updateWeight);
+    });
+
+    heightTextController.addListener(updateHeight);
+    weightTextController.addListener(updateWeight);
+
+    return const BmiModel(Unit.metric, null, null, BmiHiddenResult());
   }
 
   final heightTextController = TextEditingController();
   final weightTextController = TextEditingController();
   
-  double? get height => state.height;
-  double? get weight => state.weight;
-  Unit get unit => state.unit;
-  BmiCategory Function(double? input) get category => state.category;
-
-  String converter(double? state, double conversionFactor){
-      return state != null 
-        ? (state * conversionFactor).toStringAsFixed(2) 
-        : '';
-  }
-
-  set _update(BmiModel model){
-    state = model;
-  }
-
   void setUnit(int index){
     assert(index >= 0 && index < Unit.values.length);
     final newUnit = Unit.values[index];
-    _update = state.copyWith(unit: newUnit);
     
-    heightTextController.text = converter(height, newUnit.heightconverter);
-    weightTextController.text = converter(weight, newUnit.weightconverter);
+    final height = converter(state.height, newUnit.heightconverter);
+    final weight = converter(state.weight, newUnit.weightconverter);
+
+    update(unit: newUnit, height: (height.$2,), weight: (weight.$2,));
+
+    heightTextController.text = height.$1;
+    weightTextController.text = weight.$1;
   }
 
-  void update({Unit? unit, (double?,)? height, (double?,)? weight, BmiState? bmiState}){
+  void Function()? get calcHandler => state.valid ? () => update(bmiState: BmiCalculateResult()) : null;
+
+  @visibleForTesting
+  (String, double?) converter(double? state, double conversionFactor) {
+      final value = state != null ? state * conversionFactor : null;
+
+      return (value?.toString() ?? '', value);
+  }
+
+  @visibleForTesting
+  void update({Unit? unit, (double?,)? height, (double?,)? weight, BmiResultState? bmiState}) {
     state = state.copyWith(
       unit: unit,
       height: height,
@@ -59,41 +70,39 @@ class BmiViewModel extends _$BmiViewModel {
     );
   }
 
-  set height(double? value){
-    _update = state.copyWith(height: (value,));
-  }
-
-  set weight(double? value){
-    _update = state.copyWith(weight: (value,));
-  }
-  
-  BmiViewModel() {
-    init();
-  }
-
-  void init(){
-    heightTextController.addListener((){
+  @visibleForTesting
+  void updateHeight()
+  {
       var height = double.tryParse(heightTextController.text);
-      if(height == this.height){
-        return;   
-      }
-      update(height: (height,), weight: null, bmiState: BmiState.hidden);
-    });
-    weightTextController.addListener((){
+      if (height != state.height) update(height: (height,), bmiState: const BmiHiddenResult());
+  }
+
+  @visibleForTesting
+  void updateWeight()
+  {
       var weight = double.tryParse(weightTextController.text);
-      if(weight == this.weight){
-        return;   
-      }
-      update(weight: (weight,), bmiState: BmiState.hidden);
-    });
+      if(weight != state.weight) update(weight: (weight,), bmiState: const BmiHiddenResult());
   }
 }
 
-final bmiProvider = FutureProvider((ref) async {
-  ref.watch(bmiViewModelProvider.select((v) => v.bmiState));
-  final uiState = ref.read(bmiViewModelProvider);
-  if(uiState.valid) {
-    return ref.read(bmiViewModelProvider).calculate();
+Future<(double,)> calculate(BmiModel model) async {
+    assert(model.valid);
+    return Future.delayed(const Duration(seconds: 3), 
+      () { 
+        if(model.weight == 1) return Future.error(AssertionError("That's a lie!"));
+        return ((model.weight! / (model.height! * model.height!)) * model.unit.conversionFactor,);
+      });
   }
-  return (null,);
+
+final bmiViewModelProvider = NotifierProvider<BmiViewModel, BmiModel>(() {
+  return BmiViewModel();
+});
+
+final bmiResultProvider = FutureProvider<BmiResult>((ref) async {
+  final state = ref.watch(bmiViewModelProvider.select((v) => v.bmiState));
+
+  return switch (state) {
+    BmiHiddenResult _ => (null,),
+    BmiCalculateResult _ => calculate(ref.read(bmiViewModelProvider))
+  };
 });

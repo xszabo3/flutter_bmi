@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:equatable/equatable.dart';
 
 enum Unit{
   metric(heightUnit: 'm', weightUnit: 'kg', conversionFactor: 1, weightconverter: 0.4535924, heightconverter: 0.0254),
@@ -18,11 +19,24 @@ enum Unit{
   final double weightconverter;
   final double heightconverter;
 }
-enum BmiState{
-  hidden, value, value2
+
+sealed class BmiResultState {
+    const BmiResultState();
 }
 
+class BmiHiddenResult implements BmiResultState {
+    const BmiHiddenResult();
+}
 
+class BmiCalculateResult implements BmiResultState {
+  @override
+  operator==(Object other){
+    return other.runtimeType == BmiCalculateResult;
+  }
+  
+  @override
+  int get hashCode => runtimeType.hashCode;
+}
 
 enum BmiCategory{
   underweight,
@@ -31,34 +45,27 @@ enum BmiCategory{
   obese
 }
 
-@immutable
-class BmiModel{
-  final Unit unit;
-  final double? height;
-  final double? weight;
-  final BmiState bmiState;
+typedef BmiResult = (double?,);
 
-  const BmiModel(this.unit, this.height, this.weight, this.bmiState);
-
-  bool get valid => height != null && weight != null && height! > 0 && weight! > 0;
-  BmiCategory category(double? input) => switch(input) {
+extension ResultCategory on BmiResult {
+  BmiCategory get category => switch($1) {
     null => BmiCategory.normal,
     < 18.5 => BmiCategory.underweight,
     >= 30 => BmiCategory.obese,
     >= 25 => BmiCategory.overweight,
     _ => BmiCategory.normal,
   };
+}
 
-  Future<(double,)> calculate() async {
-    assert(valid);
-    return Future.delayed(const Duration(seconds: 3), 
-      () { 
-        if(weight == 1) return Future.error(AssertionError("That's a lie!"));
-        return ((weight! / (height! * height!)) * unit.conversionFactor,);
-      });
-  }
+@immutable
+class BmiModel extends Equatable {
+  final Unit unit;
+  final double? height;
+  final double? weight;
+  final BmiResultState bmiState;
 
-  BmiState refreshValue(){
-    return bmiState == BmiState.value ? BmiState.value2 : BmiState.value;
-  }
+  const BmiModel(this.unit, this.height, this.weight, this.bmiState);
+  
+  @override
+  List<Object?> get props => [unit, height, weight, bmiState];
 }

@@ -58,49 +58,50 @@ class PageContents extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    void Function()? pressHandler = ref.watch(bmiViewModelProvider).valid ? () { 
-      final viewModel = ref.read(bmiViewModelProvider.notifier);
-      viewModel.update(bmiState: ref.read(bmiViewModelProvider).refreshValue());
-    } : null;
+    final BmiViewModel(
+        weightTextController: weightTextController,
+        heightTextController: heightTextController,
+        calcHandler: calcHandler,
+        setUnit: setUnit
+      ) = ref.watch(bmiViewModelProvider.notifier);
+    final model = ref.watch(bmiViewModelProvider);
+    final result = ref.watch(bmiResultProvider);
+
     enterPressHandler() {
-      if(pressHandler != null) pressHandler();
+      if(calcHandler != null) calcHandler();
     }
-    void Function(int) setUnit = ref.read(bmiViewModelProvider.notifier.select((v) => v.setUnit));
-    currentUnit(Unit unit) => unit == ref.watch(bmiViewModelProvider.select((v) => v.unit));
-    final unit = ref.watch(bmiViewModelProvider.select((value) => value.unit));
-    var bmi = ref.watch(bmiProvider);
 
     return Column(
       children: [
         InputRow(label: "Weight:", textfieldWidth: constants.textfieldWidth, isHeight: false,
-          textController: ref.watch(bmiViewModelProvider.notifier).weightTextController,
-          textKey: const Key('weight'), enterPressHandler: enterPressHandler, selectedUnit: unit,
+          textController: weightTextController,
+          textKey: const Key('weight'), enterPressHandler: enterPressHandler, selectedUnit: model.unit,
         ),
         InputRow(label: "Height:", textfieldWidth: constants.textfieldWidth, isHeight: true, 
-          textController: ref.watch(bmiViewModelProvider.notifier).heightTextController, 
-          textKey: const Key('height'), enterPressHandler: enterPressHandler, selectedUnit: unit,
+          textController: heightTextController, 
+          textKey: const Key('height'), enterPressHandler: enterPressHandler, selectedUnit: model.unit,
         ),
         const SizedBox(height: 20,),
         
         //Buttons
         Padding(
           padding: const EdgeInsets.all(8.0),
-          child: UnitToggle(currentUnit: currentUnit, setUnit: setUnit,),
+          child: UnitToggle(unit: model.unit, setUnit: setUnit,),
         ),
         Padding(
           padding: const EdgeInsets.all(8.0),
-          child: CalculateButton(pressHandler: pressHandler,),
+          child: CalculateButton(pressHandler: calcHandler,),
         ),
         //Result
-        if(ref.watch(bmiViewModelProvider).bmiState != BmiState.hidden)
-          bmi.when(
+        if(model.bmiState is! BmiHiddenResult)
+          result.when(
             skipLoadingOnRefresh: false,
             data: (data) => Padding(
               padding: const EdgeInsets.all(8.0),
               child: Text(
                 key: const Key('result'),
-                style: TextStyle(backgroundColor: ColorBmi(ref.read(bmiViewModelProvider).category(data.$1)).color),
-                'BMI = ${data.$1}'),
+                style: TextStyle(backgroundColor: data.category.color),
+                'BMI = ${data.$1?.toStringAsFixed(2)}'),
             ), 
             error: (error, _) => Padding(
               padding: const EdgeInsets.all(8.0),
@@ -137,18 +138,18 @@ class CalculateButton extends StatelessWidget {
 class UnitToggle extends StatelessWidget {
   const UnitToggle({
     super.key,
-    required this.currentUnit,
+    required this.unit,
     required this.setUnit,
   });
 
-  final bool Function(Unit) currentUnit;
+  final Unit unit;
   final void Function(int) setUnit;
 
   @override
   Widget build(BuildContext context) {
     final Color primary = Theme.of(context).colorScheme.primary;
     return ToggleButtons(
-      isSelected: Unit.values.map(currentUnit).toList(),
+      isSelected: Unit.values.map((e) => e == unit).toList(),
       selectedColor: Colors.white,
       color: primary,
       fillColor: primary,

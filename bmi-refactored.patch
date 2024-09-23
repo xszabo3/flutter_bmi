@@ -1,0 +1,817 @@
+diff --git a/lib/logic/bmi_logic.dart b/lib/logic/bmi_logic.dart
+index 86e9a0e..19367a7 100644
+--- a/lib/logic/bmi_logic.dart
++++ b/lib/logic/bmi_logic.dart
+@@ -1,99 +1,104 @@
+-import 'package:flutter/material.dart';
+-import 'package:flutter_bmi/model/bmi_model.dart';
+-import 'package:riverpod_annotation/riverpod_annotation.dart';
+-
+-part 'bmi_logic.g.dart';
+-
+-extension BmiModelExt on BmiModel {
+-  BmiModel copyWith({Unit? unit, (double?,)? height, (double?,)? weight, BmiState? bmiState}) {
+-    return BmiModel(
+-      unit ?? this.unit, 
+-      height != null ? height.$1 : this.height, 
+-      weight != null ? weight.$1 : this.weight,
+-      bmiState ?? this.bmiState,
+-    );
+-  }
+-}
+-
+-@Riverpod(keepAlive: true)
+-class BmiViewModel extends _$BmiViewModel {
+-
+-  @override
+-  BmiModel build() {
+-    return const BmiModel(Unit.metric, null, null, BmiState.hidden);
+-  }
+-
+-  final heightTextController = TextEditingController();
+-  final weightTextController = TextEditingController();
+-  
+-  double? get height => state.height;
+-  double? get weight => state.weight;
+-  Unit get unit => state.unit;
+-  BmiCategory Function(double? input) get category => state.category;
+-
+-  String converter(double? state, double conversionFactor){
+-      return state != null 
+-        ? (state * conversionFactor).toStringAsFixed(2) 
+-        : '';
+-  }
+-
+-  set _update(BmiModel model){
+-    state = model;
+-  }
+-
+-  void setUnit(int index){
+-    assert(index >= 0 && index < Unit.values.length);
+-    final newUnit = Unit.values[index];
+-    _update = state.copyWith(unit: newUnit);
+-    
+-    heightTextController.text = converter(height, newUnit.heightconverter);
+-    weightTextController.text = converter(weight, newUnit.weightconverter);
+-  }
+-
+-  void update({Unit? unit, (double?,)? height, (double?,)? weight, BmiState? bmiState}){
+-    state = state.copyWith(
+-      unit: unit,
+-      height: height,
+-      weight: weight,
+-      bmiState: bmiState,
+-    );
+-  }
+-
+-  set height(double? value){
+-    _update = state.copyWith(height: (value,));
+-  }
+-
+-  set weight(double? value){
+-    _update = state.copyWith(weight: (value,));
+-  }
+-  
+-  BmiViewModel() {
+-    init();
+-  }
+-
+-  void init(){
+-    heightTextController.addListener((){
+-      var height = double.tryParse(heightTextController.text);
+-      if(height == this.height){
+-        return;   
+-      }
+-      update(height: (height,), weight: null, bmiState: BmiState.hidden);
+-    });
+-    weightTextController.addListener((){
+-      var weight = double.tryParse(weightTextController.text);
+-      if(weight == this.weight){
+-        return;   
+-      }
+-      update(weight: (weight,), bmiState: BmiState.hidden);
+-    });
+-  }
+-}
+-
+-final bmiProvider = FutureProvider((ref) async {
+-  ref.watch(bmiViewModelProvider.select((v) => v.bmiState));
+-  final uiState = ref.read(bmiViewModelProvider);
+-  if(uiState.valid) {
+-    return ref.read(bmiViewModelProvider).calculate();
+-  }
+-  return (null,);
+-});
+\ No newline at end of file
++import 'package:flutter/material.dart';
++import 'package:flutter_bmi/model/bmi_model.dart';
++import 'package:riverpod_annotation/riverpod_annotation.dart';
++
++part 'bmi_logic.g.dart';
++
++extension BmiModelExt on BmiModel {
++  BmiModel copyWith({Unit? unit, (double?,)? height, (double?,)? weight, BmiResultState? bmiState}) {
++    return BmiModel(
++      unit ?? this.unit, 
++      height != null ? height.$1 : this.height, 
++      weight != null ? weight.$1 : this.weight,
++      bmiState ?? this.bmiState,
++    );
++  }
++
++  bool get valid => height != null && weight != null && height! > 0 && weight! > 0;
++}
++
++@Riverpod(keepAlive: true)
++class BmiViewModel extends _$BmiViewModel {
++
++  BmiViewModel();
++
++  @override
++  BmiModel build() {
++    ref.onDispose(() {
++        heightTextController.removeListener(updateHeight);
++        weightTextController.removeListener(updateWeight);
++    });
++
++    heightTextController.addListener(updateHeight);
++    weightTextController.addListener(updateWeight);
++
++    return const BmiModel(Unit.metric, null, null, BmiHiddenResult());
++  }
++
++  final heightTextController = TextEditingController();
++  final weightTextController = TextEditingController();
++  
++  void setUnit(int index){
++    assert(index >= 0 && index < Unit.values.length);
++    final newUnit = Unit.values[index];
++    
++    final height = converter(state.height, newUnit.heightconverter);
++    final weight = converter(state.weight, newUnit.weightconverter);
++
++    update(unit: newUnit, height: (height.$2,), weight: (weight.$2,));
++
++    heightTextController.text = height.$1;
++    weightTextController.text = weight.$1;
++  }
++
++  void Function()? get calcHandler => state.valid ? () => update(bmiState: BmiCalculateResult()) : null;
++
++  @visibleForTesting
++  (String, double?) converter(double? state, double conversionFactor) {
++      final value = state != null ? state * conversionFactor : null;
++
++      return (value?.toString() ?? '', value);
++  }
++
++  @visibleForTesting
++  void update({Unit? unit, (double?,)? height, (double?,)? weight, BmiResultState? bmiState}) {
++    state = state.copyWith(
++      unit: unit,
++      height: height,
++      weight: weight,
++      bmiState: bmiState,
++    );
++  }
++
++  @visibleForTesting
++  void updateHeight()
++  {
++      var height = double.tryParse(heightTextController.text);
++      if (height != state.height) update(height: (height,), bmiState: const BmiHiddenResult());
++  }
++
++  @visibleForTesting
++  void updateWeight()
++  {
++      var weight = double.tryParse(weightTextController.text);
++      if(weight != state.weight) update(weight: (weight,), bmiState: const BmiHiddenResult());
++  }
++}
++
++Future<(double,)> calculate(BmiModel model) async {
++    assert(model.valid);
++    return Future.delayed(const Duration(seconds: 3), 
++      () { 
++        if(model.weight == 1) return Future.error(AssertionError("That's a lie!"));
++        return ((model.weight! / (model.height! * model.height!)) * model.unit.conversionFactor,);
++      });
++  }
++
++final bmiResultProvider = FutureProvider<BmiResult>((ref) async {
++  final state = ref.watch(bmiViewModelProvider.select((v) => v.bmiState));
++
++  return switch (state) {
++    BmiHiddenResult _ => (null,),
++    BmiCalculateResult _ => calculate(ref.read(bmiViewModelProvider))
++  };
++});
+diff --git a/lib/model/bmi_model.dart b/lib/model/bmi_model.dart
+index c9d0bac..d7fabb9 100644
+--- a/lib/model/bmi_model.dart
++++ b/lib/model/bmi_model.dart
+@@ -1,64 +1,60 @@
+-import 'package:flutter/material.dart';
+-
+-enum Unit{
+-  metric(heightUnit: 'm', weightUnit: 'kg', conversionFactor: 1, weightconverter: 0.4535924, heightconverter: 0.0254),
+-  imperial(heightUnit: 'in', weightUnit: 'lb', conversionFactor: 703, weightconverter: 2.204623, heightconverter: 39.37008);
+-
+-  const Unit({
+-    required this.heightUnit,
+-    required this.weightUnit,
+-    required this.conversionFactor,
+-    required this.weightconverter,
+-    required this.heightconverter,
+-  });
+-
+-  final String heightUnit;
+-  final String weightUnit;
+-  final double conversionFactor;
+-  final double weightconverter;
+-  final double heightconverter;
+-}
+-enum BmiState{
+-  hidden, value, value2
+-}
+-
+-
+-
+-enum BmiCategory{
+-  underweight,
+-  normal,
+-  overweight,
+-  obese
+-}
+-
+-@immutable
+-class BmiModel{
+-  final Unit unit;
+-  final double? height;
+-  final double? weight;
+-  final BmiState bmiState;
+-
+-  const BmiModel(this.unit, this.height, this.weight, this.bmiState);
+-
+-  bool get valid => height != null && weight != null && height! > 0 && weight! > 0;
+-  BmiCategory category(double? input) => switch(input) {
+-    null => BmiCategory.normal,
+-    < 18.5 => BmiCategory.underweight,
+-    >= 30 => BmiCategory.obese,
+-    >= 25 => BmiCategory.overweight,
+-    _ => BmiCategory.normal,
+-  };
+-
+-  Future<(double,)> calculate() async {
+-    assert(valid);
+-    return Future.delayed(const Duration(seconds: 3), 
+-      () { 
+-        if(weight == 1) return Future.error(AssertionError("That's a lie!"));
+-        return ((weight! / (height! * height!)) * unit.conversionFactor,);
+-      });
+-  }
+-
+-  BmiState refreshValue(){
+-    return bmiState == BmiState.value ? BmiState.value2 : BmiState.value;
+-  }
+-}
+\ No newline at end of file
++import 'package:flutter/material.dart';
++
++enum Unit{
++  metric(heightUnit: 'm', weightUnit: 'kg', conversionFactor: 1, weightconverter: 0.4535924, heightconverter: 0.0254),
++  imperial(heightUnit: 'in', weightUnit: 'lb', conversionFactor: 703, weightconverter: 2.204623, heightconverter: 39.37008);
++
++  const Unit({
++    required this.heightUnit,
++    required this.weightUnit,
++    required this.conversionFactor,
++    required this.weightconverter,
++    required this.heightconverter,
++  });
++
++  final String heightUnit;
++  final String weightUnit;
++  final double conversionFactor;
++  final double weightconverter;
++  final double heightconverter;
++}
++
++sealed class BmiResultState {
++    const BmiResultState();
++}
++
++class BmiHiddenResult implements BmiResultState {
++    const BmiHiddenResult();
++}
++
++class BmiCalculateResult implements BmiResultState {
++}
++
++enum BmiCategory{
++  underweight,
++  normal,
++  overweight,
++  obese
++}
++
++typedef BmiResult = (double?,);
++
++extension ResultCategory on BmiResult {
++  BmiCategory get category => switch($1) {
++    null => BmiCategory.normal,
++    < 18.5 => BmiCategory.underweight,
++    >= 30 => BmiCategory.obese,
++    >= 25 => BmiCategory.overweight,
++    _ => BmiCategory.normal,
++  };
++}
++
++@immutable
++class BmiModel {
++  final Unit unit;
++  final double? height;
++  final double? weight;
++  final BmiResultState bmiState;
++
++  const BmiModel(this.unit, this.height, this.weight, this.bmiState);
++}
+diff --git a/lib/ui/bmi_page.dart b/lib/ui/bmi_page.dart
+index 4f60b10..71453fa 100644
+--- a/lib/ui/bmi_page.dart
++++ b/lib/ui/bmi_page.dart
+@@ -1,236 +1,237 @@
+-import 'package:flutter/material.dart';
+-import 'package:flutter/services.dart';
+-import 'package:flutter_bmi/logic/bmi_logic.dart';
+-import 'package:flutter_bmi/model/bmi_model.dart';
+-
+-import 'package:flutter_bmi/utils/constants.dart' as constants;
+-import 'package:flutter_riverpod/flutter_riverpod.dart';
+-
+-extension Capitalize on String{
+-  String capitalize() {
+-    return '${this[0].toUpperCase()}''${substring(1)}';
+-  }
+-}
+-
+-extension ColorBmi on BmiCategory{
+-  Color get color {
+-    switch(this) {
+-      case BmiCategory.underweight: return Colors.yellow;
+-      case BmiCategory.normal: return Colors.green;
+-      case BmiCategory.overweight: return Colors.orange;
+-      case BmiCategory.obese: return Colors.red;
+-    }
+-  }
+-}
+-
+-TextEditingValue doubleInputChecker(TextEditingValue old, TextEditingValue next){
+-  if (next.text.isEmpty || next.text == '.'){
+-    return next;
+-  }
+-
+-  final value = double.tryParse(next.text);
+-  return value != null && value > 0
+-    ? next 
+-    : old;
+-}
+-
+-class BmiPage extends StatelessWidget {
+-  const BmiPage({
+-    super.key,
+-  });
+-
+-
+-  @override
+-  Widget build(BuildContext context) {
+-    return const Column(
+-      mainAxisAlignment: MainAxisAlignment.center,
+-      children: [
+-        PageContents()
+-      ],
+-    );
+-  }
+-}
+-
+-class PageContents extends ConsumerWidget {
+-  const PageContents({
+-    super.key,
+-  });
+-
+-  @override
+-  Widget build(BuildContext context, WidgetRef ref) {
+-    void Function()? pressHandler = ref.watch(bmiViewModelProvider).valid ? () { 
+-      final viewModel = ref.read(bmiViewModelProvider.notifier);
+-      viewModel.update(bmiState: ref.read(bmiViewModelProvider).refreshValue());
+-    } : null;
+-    enterPressHandler() {
+-      if(pressHandler != null) pressHandler();
+-    }
+-    void Function(int) setUnit = ref.read(bmiViewModelProvider.notifier.select((v) => v.setUnit));
+-    currentUnit(Unit unit) => unit == ref.watch(bmiViewModelProvider.select((v) => v.unit));
+-    final unit = ref.watch(bmiViewModelProvider.select((value) => value.unit));
+-    var bmi = ref.watch(bmiProvider);
+-
+-    return Column(
+-      children: [
+-        InputRow(label: "Weight:", textfieldWidth: constants.textfieldWidth, isHeight: false,
+-          textController: ref.watch(bmiViewModelProvider.notifier).weightTextController,
+-          textKey: const Key('weight'), enterPressHandler: enterPressHandler, selectedUnit: unit,
+-        ),
+-        InputRow(label: "Height:", textfieldWidth: constants.textfieldWidth, isHeight: true, 
+-          textController: ref.watch(bmiViewModelProvider.notifier).heightTextController, 
+-          textKey: const Key('height'), enterPressHandler: enterPressHandler, selectedUnit: unit,
+-        ),
+-        const SizedBox(height: 20,),
+-        
+-        //Buttons
+-        Padding(
+-          padding: const EdgeInsets.all(8.0),
+-          child: UnitToggle(currentUnit: currentUnit, setUnit: setUnit,),
+-        ),
+-        Padding(
+-          padding: const EdgeInsets.all(8.0),
+-          child: CalculateButton(pressHandler: pressHandler,),
+-        ),
+-        //Result
+-        if(ref.watch(bmiViewModelProvider).bmiState != BmiState.hidden)
+-          bmi.when(
+-            skipLoadingOnRefresh: false,
+-            data: (data) => Padding(
+-              padding: const EdgeInsets.all(8.0),
+-              child: Text(
+-                key: const Key('result'),
+-                style: TextStyle(backgroundColor: ColorBmi(ref.read(bmiViewModelProvider).category(data.$1)).color),
+-                'BMI = ${data.$1}'),
+-            ), 
+-            error: (error, _) => Padding(
+-              padding: const EdgeInsets.all(8.0),
+-              child: Text(
+-                key: const Key('error'),
+-                error.toString()),
+-            ), 
+-            loading: () => const CircularProgressIndicator()
+-          )
+-        else Container()
+-      ],
+-    );
+-  }
+-}
+-
+-class CalculateButton extends StatelessWidget {
+-  const CalculateButton({
+-    super.key,
+-    required this.pressHandler,
+-  });
+-
+-  final void Function()? pressHandler;
+-
+-  @override
+-  Widget build(BuildContext context) {
+-    return ElevatedButton(
+-        key: const Key('calculate_button'),
+-        onPressed: pressHandler,
+-        child: const Text('Calculate')
+-    );
+-  }
+-}
+-
+-class UnitToggle extends StatelessWidget {
+-  const UnitToggle({
+-    super.key,
+-    required this.currentUnit,
+-    required this.setUnit,
+-  });
+-
+-  final bool Function(Unit) currentUnit;
+-  final void Function(int) setUnit;
+-
+-  @override
+-  Widget build(BuildContext context) {
+-    final Color primary = Theme.of(context).colorScheme.primary;
+-    return ToggleButtons(
+-      isSelected: Unit.values.map(currentUnit).toList(),
+-      selectedColor: Colors.white,
+-      color: primary,
+-      fillColor: primary,
+-      renderBorder: true,
+-      borderRadius: BorderRadius.circular(10),
+-      onPressed: setUnit,
+-      children: const [
+-        Padding(
+-          padding: EdgeInsets.all(8.0),
+-          child: Text(
+-            key: Key('unit_button_metric'),
+-            'Metric'),
+-        ),
+-        Padding(
+-          padding: EdgeInsets.all(8.0),
+-          child: Text(key: Key('unit_button_imperial'),
+-          'Imperial'),
+-        ),
+-      ],
+-    );
+-  }
+-}
+-
+-class InputRow extends StatelessWidget {
+-  const InputRow({
+-    super.key,
+-    required this.label,
+-    required this.textfieldWidth,
+-    required this.isHeight,
+-    required this.textController,
+-    required this.textKey,
+-    required this.enterPressHandler,
+-    required this.selectedUnit,
+-  });
+-
+-  final String label;
+-  final bool isHeight;
+-  final double textfieldWidth;
+-  final TextEditingController textController;
+-  final Key textKey;
+-  final void Function() enterPressHandler;
+-  final Unit selectedUnit;
+-
+-  @override
+-  Widget build(BuildContext context) {
+-    return Row(
+-      mainAxisAlignment: MainAxisAlignment.center,
+-      children: [
+-        Text(label),
+-        Padding(
+-          padding: const EdgeInsets.all(8.0),
+-          child: SizedBox(
+-            width: textfieldWidth,
+-            child: TextField(
+-              key: textKey,
+-              controller: textController,
+-              onSubmitted: (s) => enterPressHandler(), 
+-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+-              inputFormatters: const [
+-                TextInputFormatter.withFunction(doubleInputChecker),
+-              ],
+-            ),
+-          ),
+-        ),
+-        UnitLabel(isHeight: isHeight, selectedUnit: selectedUnit,),
+-      ],
+-    );
+-  }
+-}
+-
+-class UnitLabel extends StatelessWidget {
+-  const UnitLabel({
+-    super.key,
+-    required this.isHeight,
+-    required this.selectedUnit,
+-  });
+-
+-  final bool isHeight;
+-  final Unit selectedUnit;
+-
+-  @override
+-  Widget build(BuildContext context) {
+-    return Text( isHeight ? selectedUnit.heightUnit : selectedUnit.weightUnit);
+-  }
++import 'package:flutter/material.dart';
++import 'package:flutter/services.dart';
++import 'package:flutter_bmi/logic/bmi_logic.dart';
++import 'package:flutter_bmi/model/bmi_model.dart';
++
++import 'package:flutter_bmi/utils/constants.dart' as constants;
++import 'package:flutter_riverpod/flutter_riverpod.dart';
++
++extension Capitalize on String{
++  String capitalize() {
++    return '${this[0].toUpperCase()}''${substring(1)}';
++  }
++}
++
++extension ColorBmi on BmiCategory{
++  Color get color {
++    switch(this) {
++      case BmiCategory.underweight: return Colors.yellow;
++      case BmiCategory.normal: return Colors.green;
++      case BmiCategory.overweight: return Colors.orange;
++      case BmiCategory.obese: return Colors.red;
++    }
++  }
++}
++
++TextEditingValue doubleInputChecker(TextEditingValue old, TextEditingValue next){
++  if (next.text.isEmpty || next.text == '.'){
++    return next;
++  }
++
++  final value = double.tryParse(next.text);
++  return value != null && value > 0
++    ? next 
++    : old;
++}
++
++class BmiPage extends StatelessWidget {
++  const BmiPage({
++    super.key,
++  });
++
++
++  @override
++  Widget build(BuildContext context) {
++    return const Column(
++      mainAxisAlignment: MainAxisAlignment.center,
++      children: [
++        PageContents()
++      ],
++    );
++  }
++}
++
++class PageContents extends ConsumerWidget {
++  const PageContents({
++    super.key,
++  });
++
++  @override
++  Widget build(BuildContext context, WidgetRef ref) {
++    final BmiViewModel(
++        weightTextController: weightTextController,
++        heightTextController: heightTextController,
++        calcHandler: calcHandler,
++        setUnit: setUnit
++      ) = ref.watch(bmiViewModelProvider.notifier);
++    final model = ref.watch(bmiViewModelProvider);
++    final result = ref.watch(bmiResultProvider);
++
++    enterPressHandler() {
++      if(calcHandler != null) calcHandler();
++    }
++
++    return Column(
++      children: [
++        InputRow(label: "Weight:", textfieldWidth: constants.textfieldWidth, isHeight: false,
++          textController: weightTextController,
++          textKey: const Key('weight'), enterPressHandler: enterPressHandler, selectedUnit: model.unit,
++        ),
++        InputRow(label: "Height:", textfieldWidth: constants.textfieldWidth, isHeight: true, 
++          textController: heightTextController, 
++          textKey: const Key('height'), enterPressHandler: enterPressHandler, selectedUnit: model.unit,
++        ),
++        const SizedBox(height: 20,),
++        
++        //Buttons
++        Padding(
++          padding: const EdgeInsets.all(8.0),
++          child: UnitToggle(unit: model.unit, setUnit: setUnit,),
++        ),
++        Padding(
++          padding: const EdgeInsets.all(8.0),
++          child: CalculateButton(pressHandler: calcHandler,),
++        ),
++        //Result
++        if(model.bmiState is! BmiHiddenResult)
++          result.when(
++            skipLoadingOnRefresh: false,
++            data: (data) => Padding(
++              padding: const EdgeInsets.all(8.0),
++              child: Text(
++                key: const Key('result'),
++                style: TextStyle(backgroundColor: data.category.color),
++                'BMI = ${data.$1}'),
++            ), 
++            error: (error, _) => Padding(
++              padding: const EdgeInsets.all(8.0),
++              child: Text(
++                key: const Key('error'),
++                error.toString()),
++            ), 
++            loading: () => const CircularProgressIndicator()
++          )
++        else Container()
++      ],
++    );
++  }
++}
++
++class CalculateButton extends StatelessWidget {
++  const CalculateButton({
++    super.key,
++    required this.pressHandler,
++  });
++
++  final void Function()? pressHandler;
++
++  @override
++  Widget build(BuildContext context) {
++    return ElevatedButton(
++        key: const Key('calculate_button'),
++        onPressed: pressHandler,
++        child: const Text('Calculate')
++    );
++  }
++}
++
++class UnitToggle extends StatelessWidget {
++  const UnitToggle({
++    super.key,
++    required this.unit,
++    required this.setUnit,
++  });
++
++  final Unit unit;
++  final void Function(int) setUnit;
++
++  @override
++  Widget build(BuildContext context) {
++    final Color primary = Theme.of(context).colorScheme.primary;
++    return ToggleButtons(
++      isSelected: Unit.values.map((e) => e == unit).toList(),
++      selectedColor: Colors.white,
++      color: primary,
++      fillColor: primary,
++      renderBorder: true,
++      borderRadius: BorderRadius.circular(10),
++      onPressed: setUnit,
++      children: const [
++        Padding(
++          padding: EdgeInsets.all(8.0),
++          child: Text(
++            key: Key('unit_button_metric'),
++            'Metric'),
++        ),
++        Padding(
++          padding: EdgeInsets.all(8.0),
++          child: Text(key: Key('unit_button_imperial'),
++          'Imperial'),
++        ),
++      ],
++    );
++  }
++}
++
++class InputRow extends StatelessWidget {
++  const InputRow({
++    super.key,
++    required this.label,
++    required this.textfieldWidth,
++    required this.isHeight,
++    required this.textController,
++    required this.textKey,
++    required this.enterPressHandler,
++    required this.selectedUnit,
++  });
++
++  final String label;
++  final bool isHeight;
++  final double textfieldWidth;
++  final TextEditingController textController;
++  final Key textKey;
++  final void Function() enterPressHandler;
++  final Unit selectedUnit;
++
++  @override
++  Widget build(BuildContext context) {
++    return Row(
++      mainAxisAlignment: MainAxisAlignment.center,
++      children: [
++        Text(label),
++        Padding(
++          padding: const EdgeInsets.all(8.0),
++          child: SizedBox(
++            width: textfieldWidth,
++            child: TextField(
++              key: textKey,
++              controller: textController,
++              onSubmitted: (s) => enterPressHandler(), 
++              keyboardType: const TextInputType.numberWithOptions(decimal: true),
++              inputFormatters: const [
++                TextInputFormatter.withFunction(doubleInputChecker),
++              ],
++            ),
++          ),
++        ),
++        UnitLabel(isHeight: isHeight, selectedUnit: selectedUnit,),
++      ],
++    );
++  }
++}
++
++class UnitLabel extends StatelessWidget {
++  const UnitLabel({
++    super.key,
++    required this.isHeight,
++    required this.selectedUnit,
++  });
++
++  final bool isHeight;
++  final Unit selectedUnit;
++
++  @override
++  Widget build(BuildContext context) {
++    return Text( isHeight ? selectedUnit.heightUnit : selectedUnit.weightUnit);
++  }
+ }
+\ No newline at end of file
